@@ -8,24 +8,34 @@ import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.WakeLockOptions;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
 import org.andengine.entity.Entity;
+import org.andengine.entity.IEntity;
+import org.andengine.entity.modifier.LoopEntityModifier;
+import org.andengine.entity.modifier.RotationModifier;
+import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.sprite.Sprite;
+import org.andengine.input.touch.TouchEvent;
 import org.andengine.ui.activity.LayoutGameActivity;
 
-public class MainActivity extends LayoutGameActivity {
+import android.util.Log;
 
+public class MainActivity extends LayoutGameActivity implements
+		IOnSceneTouchListener {
+
+	// Variables
 	final int mCameraWidth = 480;
 	final int mCameraHeight = 800;
 	private Camera mCamera;
 	private Scene mScene;
 	private GameManager gameManager;
+	private boolean mSpinning = false;
 
+	// Entities
 	private Entity mLayer;
-
-	private Sprite mSprite;
+	private Sprite mSpriteZodiac;
 
 	// ----------------------------------------------------------
-	// Andengine start up methods
+	// Andengine lifecycle
 	// ----------------------------------------------------------
 
 	@Override
@@ -68,6 +78,7 @@ public class MainActivity extends LayoutGameActivity {
 
 		mLayer = new Entity();
 		mScene.attachChild(mLayer);
+		mScene.setOnSceneTouchListener(this);
 
 		addSprites();
 
@@ -94,21 +105,61 @@ public class MainActivity extends LayoutGameActivity {
 		return R.id.gameSurfaceView;
 	}
 
+	// ----------------------------------------------------------
+	// Sprite methods
+	// ----------------------------------------------------------
+
 	private void addSprites() {
 
 		final float positionX = mCameraWidth * 0.5f;
 		final float positionY = mCameraHeight * 0.5f;
 
 		/* Add our marble sprite to the bottom left side of the Scene initially */
-		Sprite mSprite = new Sprite(positionX, positionY,
+		mSpriteZodiac = new Sprite(positionX, positionY,
 				ResourceManager.getInstance().mZodiacCircle,
 				mEngine.getVertexBufferObjectManager());
 
-		mSprite.setHeight(400);
-		mSprite.setWidth(400);
+		mSpriteZodiac.setHeight(mCameraWidth);
+		mSpriteZodiac.setWidth(mCameraWidth);
 
-		/* Attach the zodiac to the Scene */
-		mLayer.attachChild(mSprite);
+		// Attach the zodiac to the Scene
+		mLayer.attachChild(mSpriteZodiac);
 
+	}
+
+	// --------------------------------------------------------------------------
+	// Listeners
+	// --------------------------------------------------------------------------
+
+	RotationModifier rotationModifier = new RotationModifier(1, 0, 360) {
+		@Override
+		protected void onModifierStarted(IEntity pItem) {
+			super.onModifierStarted(pItem);
+			// Your action after starting modifier
+		}
+
+		@Override
+		protected void onModifierFinished(IEntity pItem) {
+			super.onModifierFinished(pItem);
+			// Your action after finishing modifier
+		}
+	};
+
+	@Override
+	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
+		Log.d("onSceneTouchEvent", "touched:" + pSceneTouchEvent.getAction());
+
+		if (pSceneTouchEvent.getAction() == 1) {
+			if (mSpinning) {
+				mSpriteZodiac.clearEntityModifiers();
+				mSpinning = false;
+			} else {
+				mSpriteZodiac.registerEntityModifier(new LoopEntityModifier(
+						rotationModifier));
+				mSpinning = true;
+			}
+		}
+
+		return true;
 	}
 }
