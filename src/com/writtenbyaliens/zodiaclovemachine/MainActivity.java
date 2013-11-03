@@ -17,6 +17,7 @@ public class MainActivity extends BaseGameActivity {
                         Camera mCamera = new Camera(0, 0, mCameraWidth, mCameraHeight);
                         final EngineOptions engineOptions = new EngineOptions(true, org.andengine.engine.options.ScreenOrientation.LANDSCAPE_FIXED, new RatioResolutionPolicy(mCameraWidth, mCameraHeight), mCamera);
                         return engineOptions;
+                        //test
                 }
                
                 @Override
