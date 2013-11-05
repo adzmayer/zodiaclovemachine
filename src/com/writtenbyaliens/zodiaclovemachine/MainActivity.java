@@ -17,6 +17,8 @@ import org.andengine.entity.sprite.Sprite;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.ui.activity.LayoutGameActivity;
 
+import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
+
 import android.util.Log;
 
 public class MainActivity extends LayoutGameActivity implements
@@ -131,7 +133,7 @@ public class MainActivity extends LayoutGameActivity implements
 	// Listeners
 	// --------------------------------------------------------------------------
 
-	RotationModifier rotationModifier = new RotationModifier(1, 0, 360) {
+	RotationModifier rotationModifier = new RotationModifier(0.5f, 0, 360) {
 		@Override
 		protected void onModifierStarted(IEntity pItem) {
 			super.onModifierStarted(pItem);
@@ -147,17 +149,30 @@ public class MainActivity extends LayoutGameActivity implements
 
 	@Override
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
-		Log.d("onSceneTouchEvent", "touched:" + pSceneTouchEvent.getAction());
 
-		if (pSceneTouchEvent.getAction() == 1) {
-			if (mSpinning) {
-				mSpriteZodiac.clearEntityModifiers();
-				mSpinning = false;
-			} else {
-				mSpriteZodiac.registerEntityModifier(new LoopEntityModifier(
-						rotationModifier));
-				mSpinning = true;
+		Log.d("onSceneTouchEvent",
+				"x:" + pSceneTouchEvent.getX() + "  y:"
+						+ pSceneTouchEvent.getY() + " Action:"
+						+ pSceneTouchEvent.getAction());
+
+		fPoint selectedSign = new fPoint(pSceneTouchEvent.getX(),
+				pSceneTouchEvent.getY());
+
+		if (Utils.returnZodiacSign(selectedSign).equals("gemini")) {
+			Log.d("onSceneTouchEvent", "Gemini selected");
+
+			if (pSceneTouchEvent.getAction() == 1) {
+				if (mSpinning) {
+					mSpriteZodiac.clearEntityModifiers();
+					mSpinning = false;
+				} else {
+					mSpriteZodiac
+							.registerEntityModifier(new LoopEntityModifier(
+									rotationModifier));
+					mSpinning = true;
+				}
 			}
+
 		}
 
 		return true;

@@ -43,7 +43,7 @@ public class ResourceManager {
 				pEngine.getTextureManager(), 1000, 1000);
 
 		mZodiacCircle = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
-				mBitmapTextureAtlas, pContext, "zodiacCircle.png");
+				mBitmapTextureAtlas, pContext, "zodiacAltered4.png");
 
 		try {
 			mBitmapTextureAtlas
