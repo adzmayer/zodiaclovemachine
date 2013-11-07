@@ -9,7 +9,6 @@ import org.andengine.engine.options.WakeLockOptions;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
 import org.andengine.entity.Entity;
 import org.andengine.entity.IEntity;
-import org.andengine.entity.modifier.LoopEntityModifier;
 import org.andengine.entity.modifier.RotationModifier;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
@@ -17,9 +16,10 @@ import org.andengine.entity.sprite.Sprite;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.ui.activity.LayoutGameActivity;
 
-import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
-
 import android.util.Log;
+import android.widget.TextView;
+
+import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
 
 public class MainActivity extends LayoutGameActivity implements
 		IOnSceneTouchListener {
@@ -31,6 +31,10 @@ public class MainActivity extends LayoutGameActivity implements
 	private Scene mScene;
 	private GameManager gameManager;
 	private boolean mSpinning = false;
+	private fPoint mSelectedSign;
+	private String selectedZodiacName;
+
+	private TextView txtView;
 
 	// Entities
 	private Entity mLayer;
@@ -85,6 +89,8 @@ public class MainActivity extends LayoutGameActivity implements
 		addSprites();
 
 		pOnCreateSceneCallback.onCreateSceneFinished(mScene);
+
+		txtView = (TextView) this.findViewById(R.id.ad_view);
 
 	}
 
@@ -155,25 +161,36 @@ public class MainActivity extends LayoutGameActivity implements
 						+ pSceneTouchEvent.getY() + " Action:"
 						+ pSceneTouchEvent.getAction());
 
-		fPoint selectedSign = new fPoint(pSceneTouchEvent.getX(),
+		mSelectedSign = new fPoint(pSceneTouchEvent.getX(),
 				pSceneTouchEvent.getY());
 
-		if (Utils.returnZodiacSign(selectedSign).equals("gemini")) {
-			Log.d("onSceneTouchEvent", "Gemini selected");
+		if (pSceneTouchEvent.getAction() == 1) {
 
-			if (pSceneTouchEvent.getAction() == 1) {
-				if (mSpinning) {
-					mSpriteZodiac.clearEntityModifiers();
-					mSpinning = false;
-				} else {
-					mSpriteZodiac
-							.registerEntityModifier(new LoopEntityModifier(
-									rotationModifier));
-					mSpinning = true;
-				}
+			selectedZodiacName = Utils.returnZodiacSign(mSelectedSign);
+
+			if (!selectedZodiacName.equals("")) {
+
+				txtView.post(new Runnable() {
+					@Override
+					public void run() {
+						txtView.setText(selectedZodiacName);
+					}
+				});
+
 			}
-
 		}
+
+		/*
+		 * if (Utils.returnZodiacSign(selectedSign).equals("gemini")) {
+		 * Log.d("onSceneTouchEvent", "Gemini selected");
+		 * 
+		 * if (pSceneTouchEvent.getAction() == 1) { if (mSpinning) {
+		 * mSpriteZodiac.clearEntityModifiers(); mSpinning = false; } else {
+		 * mSpriteZodiac .registerEntityModifier(new LoopEntityModifier(
+		 * rotationModifier)); mSpinning = true; } }
+		 * 
+		 * }
+		 */
 
 		return true;
 	}

@@ -32,7 +32,95 @@ public final class Utils {
 		b = new fPoint(270, 610);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return sign;
+			return "Gemini";
+		}
+
+		// Cancer
+		a = new fPoint(320, 590);
+		b = new fPoint(370, 566);
+		c = new fPoint(220, 400);
+		if (pointInTriangle(selectedSign, a, b, c)) {
+			return "Cancer";
+		}
+
+		// Leo
+		a = new fPoint(410, 548);
+		b = new fPoint(434, 476);
+		c = new fPoint(220, 400);
+		if (pointInTriangle(selectedSign, a, b, c)) {
+			return "Leo";
+		}
+
+		// Virgo
+		a = new fPoint(442, 418);
+		b = new fPoint(452, 362);
+		c = new fPoint(220, 400);
+		if (pointInTriangle(selectedSign, a, b, c)) {
+			return "Virgo";
+		}
+
+		// Libra
+		a = new fPoint(432, 314);
+		b = new fPoint(402, 266);
+		c = new fPoint(220, 400);
+		if (pointInTriangle(selectedSign, a, b, c)) {
+			return "Libra";
+		}
+
+		// Scorpio
+		a = new fPoint(388, 235);
+		b = new fPoint(322, 200);
+		c = new fPoint(220, 400);
+		if (pointInTriangle(selectedSign, a, b, c)) {
+			return "Scorpio";
+		}
+
+		// Sagittarius
+		a = new fPoint(280, 175);
+		b = new fPoint(225, 180);
+		c = new fPoint(220, 400);
+		if (pointInTriangle(selectedSign, a, b, c)) {
+			return "Sagittarius";
+		}
+
+		// Capricorn
+		a = new fPoint(118, 216);
+		b = new fPoint(166, 194);
+		c = new fPoint(220, 400);
+		if (pointInTriangle(selectedSign, a, b, c)) {
+			return "Capricorn";
+		}
+
+		// Aquarius
+		a = new fPoint(48, 318);
+		b = new fPoint(74, 262);
+		c = new fPoint(220, 400);
+		if (pointInTriangle(selectedSign, a, b, c)) {
+			return "Aquarius";
+		}
+
+		// Pisces
+		a = new fPoint(30, 416);
+		b = new fPoint(36, 364);
+		c = new fPoint(220, 400);
+		if (pointInTriangle(selectedSign, a, b, c)) {
+			return "Pisces";
+		}
+
+		// Aries
+		a = new fPoint(86, 528);
+		b = new fPoint(56, 478);
+		c = new fPoint(220, 400);
+		if (pointInTriangle(selectedSign, a, b, c)) {
+			return "Aries";
+		}
+
+		// Taurus
+		a = new fPoint(108, 554);
+		b = new fPoint(160, 600);
+		c = new fPoint(220, 400);
+		if (pointInTriangle(selectedSign, a, b, c)) {
+			return "Taurus";
 		}
 
 		return sign;
