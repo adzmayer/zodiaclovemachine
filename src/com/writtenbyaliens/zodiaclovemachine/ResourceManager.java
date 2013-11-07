@@ -19,6 +19,7 @@ public class ResourceManager {
 
 	// GFX
 	public ITextureRegion mZodiacCircle;
+	public ITextureRegion mSparkle;
 	private Camera mCamera;
 
 	public static ResourceManager getInstance() {
@@ -39,17 +40,20 @@ public class ResourceManager {
 		// Set up the graphic textures
 		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 
-		BuildableBitmapTextureAtlas mBitmapTextureAtlas = new BuildableBitmapTextureAtlas(
+		BuildableBitmapTextureAtlas bitmapTextureAtlas = new BuildableBitmapTextureAtlas(
 				pEngine.getTextureManager(), 1000, 1000);
 
 		mZodiacCircle = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
-				mBitmapTextureAtlas, pContext, "zodiacAltered4.png");
+				bitmapTextureAtlas, pContext, "zodiacAltered4.png");
+
+		mSparkle = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
+				bitmapTextureAtlas, pContext, "sparkle01.png");
 
 		try {
-			mBitmapTextureAtlas
+			bitmapTextureAtlas
 					.build(new BlackPawnTextureAtlasBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(
 							0, 1, 1));
-			mBitmapTextureAtlas.load();
+			bitmapTextureAtlas.load();
 		} catch (TextureAtlasBuilderException e) {
 			Debug.e(e);
 		}
@@ -57,10 +61,13 @@ public class ResourceManager {
 
 	public synchronized void unloadGameTextures() {
 		// call unload to remove the corresponding texture atlas from memory
-		BuildableBitmapTextureAtlas mBitmapTextureAtlas = (BuildableBitmapTextureAtlas) mZodiacCircle
+		BuildableBitmapTextureAtlas bitmapTextureAtlas = (BuildableBitmapTextureAtlas) mZodiacCircle
 				.getTexture();
-		mBitmapTextureAtlas.unload();
+		bitmapTextureAtlas.unload();
 
+		bitmapTextureAtlas = (BuildableBitmapTextureAtlas) mSparkle
+				.getTexture();
+		bitmapTextureAtlas.unload();
 		// ... Continue to unload all textures related to the 'Game' scene
 
 		// Once all textures have been unloaded, attempt to invoke the Garbage

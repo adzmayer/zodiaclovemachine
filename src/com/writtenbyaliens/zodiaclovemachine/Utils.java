@@ -19,9 +19,9 @@ public final class Utils {
 		return ((b1 == b2) && (b2 == b3));
 	}
 
-	public static String returnZodiacSign(fPoint selectedSign) {
+	public static int returnZodiacSign(fPoint selectedSign) {
 
-		String sign = "";
+		int sign = 0;
 		fPoint a;
 		fPoint b;
 		fPoint c;
@@ -32,7 +32,7 @@ public final class Utils {
 		b = new fPoint(270, 610);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return "Gemini";
+			return Constants.ZodiacSigns.GEMINI;
 		}
 
 		// Cancer
@@ -40,7 +40,7 @@ public final class Utils {
 		b = new fPoint(370, 566);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return "Cancer";
+			return Constants.ZodiacSigns.CANCER;
 		}
 
 		// Leo
@@ -48,7 +48,7 @@ public final class Utils {
 		b = new fPoint(434, 476);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return "Leo";
+			return Constants.ZodiacSigns.LEO;
 		}
 
 		// Virgo
@@ -56,7 +56,7 @@ public final class Utils {
 		b = new fPoint(452, 362);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return "Virgo";
+			return Constants.ZodiacSigns.VIRGO;
 		}
 
 		// Libra
@@ -64,7 +64,7 @@ public final class Utils {
 		b = new fPoint(402, 266);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return "Libra";
+			return Constants.ZodiacSigns.LIBRA;
 		}
 
 		// Scorpio
@@ -72,7 +72,7 @@ public final class Utils {
 		b = new fPoint(322, 200);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return "Scorpio";
+			return Constants.ZodiacSigns.SCORPIO;
 		}
 
 		// Sagittarius
@@ -80,7 +80,7 @@ public final class Utils {
 		b = new fPoint(225, 180);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return "Sagittarius";
+			return Constants.ZodiacSigns.SAGITTARIUS;
 		}
 
 		// Capricorn
@@ -88,7 +88,7 @@ public final class Utils {
 		b = new fPoint(166, 194);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return "Capricorn";
+			return Constants.ZodiacSigns.CAPRICORN;
 		}
 
 		// Aquarius
@@ -96,7 +96,7 @@ public final class Utils {
 		b = new fPoint(74, 262);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return "Aquarius";
+			return Constants.ZodiacSigns.AQUARIUS;
 		}
 
 		// Pisces
@@ -104,7 +104,7 @@ public final class Utils {
 		b = new fPoint(36, 364);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return "Pisces";
+			return Constants.ZodiacSigns.PISCES;
 		}
 
 		// Aries
@@ -112,7 +112,7 @@ public final class Utils {
 		b = new fPoint(56, 478);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return "Aries";
+			return Constants.ZodiacSigns.ARIES;
 		}
 
 		// Taurus
@@ -120,7 +120,7 @@ public final class Utils {
 		b = new fPoint(160, 600);
 		c = new fPoint(220, 400);
 		if (pointInTriangle(selectedSign, a, b, c)) {
-			return "Taurus";
+			return Constants.ZodiacSigns.TAURUS;
 		}
 
 		return sign;

@@ -9,13 +9,23 @@ import org.andengine.engine.options.WakeLockOptions;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
 import org.andengine.entity.Entity;
 import org.andengine.entity.IEntity;
+import org.andengine.entity.modifier.LoopEntityModifier;
 import org.andengine.entity.modifier.RotationModifier;
+import org.andengine.entity.particle.BatchedSpriteParticleSystem;
+import org.andengine.entity.particle.emitter.CircleOutlineParticleEmitter;
+import org.andengine.entity.particle.initializer.AccelerationParticleInitializer;
+import org.andengine.entity.particle.initializer.ColorParticleInitializer;
+import org.andengine.entity.particle.initializer.ExpireParticleInitializer;
+import org.andengine.entity.particle.modifier.ScaleParticleModifier;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.sprite.Sprite;
+import org.andengine.entity.sprite.UncoloredSprite;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.ui.activity.LayoutGameActivity;
 
+import android.content.Context;
+import android.os.Vibrator;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -29,16 +39,19 @@ public class MainActivity extends LayoutGameActivity implements
 	final int mCameraHeight = 800;
 	private Camera mCamera;
 	private Scene mScene;
-	private GameManager gameManager;
+	private GameManager mGameManager;
 	private boolean mSpinning = false;
 	private fPoint mSelectedSign;
-	private String selectedZodiacName;
+	private int mSelectedZodiacId;
+	private boolean touchLock = false;
 
 	private TextView txtView;
 
 	// Entities
 	private Entity mLayer;
+	private Entity mLayerBackground;
 	private Sprite mSpriteZodiac;
+	private BatchedSpriteParticleSystem mParticleSystem;
 
 	// ----------------------------------------------------------
 	// Andengine lifecycle
@@ -82,10 +95,14 @@ public class MainActivity extends LayoutGameActivity implements
 			throws IOException {
 		mScene = new Scene();
 
+		mLayerBackground = new Entity();
+		mScene.attachChild(mLayerBackground);
+
 		mLayer = new Entity();
 		mScene.attachChild(mLayer);
 		mScene.setOnSceneTouchListener(this);
 
+		addBackground();
 		addSprites();
 
 		pOnCreateSceneCallback.onCreateSceneFinished(mScene);
@@ -136,6 +153,14 @@ public class MainActivity extends LayoutGameActivity implements
 	}
 
 	// --------------------------------------------------------------------------
+	// Background methods
+	// --------------------------------------------------------------------------
+
+	private void addBackground() {
+
+	}
+
+	// --------------------------------------------------------------------------
 	// Listeners
 	// --------------------------------------------------------------------------
 
@@ -164,34 +189,185 @@ public class MainActivity extends LayoutGameActivity implements
 		mSelectedSign = new fPoint(pSceneTouchEvent.getX(),
 				pSceneTouchEvent.getY());
 
-		if (pSceneTouchEvent.getAction() == 1) {
+		mSelectedZodiacId = Utils.returnZodiacSign(mSelectedSign);
 
-			selectedZodiacName = Utils.returnZodiacSign(mSelectedSign);
+		if (pSceneTouchEvent.getAction() == 0 && mSelectedZodiacId != 0) {
+			switch (mSelectedZodiacId) {
+			case Constants.ZodiacSigns.GEMINI:
 
-			if (!selectedZodiacName.equals("")) {
-
-				txtView.post(new Runnable() {
-					@Override
-					public void run() {
-						txtView.setText(selectedZodiacName);
-					}
-				});
+				break;
+			case Constants.ZodiacSigns.CANCER:
+				break;
+			case Constants.ZodiacSigns.LEO:
+				break;
+			case Constants.ZodiacSigns.VIRGO:
+				break;
+			case Constants.ZodiacSigns.LIBRA:
+				break;
+			case Constants.ZodiacSigns.SCORPIO:
+				break;
+			case Constants.ZodiacSigns.SAGITTARIUS:
+				break;
+			case Constants.ZodiacSigns.CAPRICORN:
+				break;
+			case Constants.ZodiacSigns.AQUARIUS:
+				break;
+			case Constants.ZodiacSigns.PISCES:
+				break;
+			case Constants.ZodiacSigns.ARIES:
+				showSparklesAndSpin();
+				break;
+			case Constants.ZodiacSigns.TAURUS:
+				break;
+			default:
+				break;
 
 			}
+
+			if (!touchLock & mSpinning == false) {
+				showSparkles((int) pSceneTouchEvent.getX(),
+						(int) pSceneTouchEvent.getY());
+			}
+
 		}
 
-		/*
-		 * if (Utils.returnZodiacSign(selectedSign).equals("gemini")) {
-		 * Log.d("onSceneTouchEvent", "Gemini selected");
-		 * 
-		 * if (pSceneTouchEvent.getAction() == 1) { if (mSpinning) {
-		 * mSpriteZodiac.clearEntityModifiers(); mSpinning = false; } else {
-		 * mSpriteZodiac .registerEntityModifier(new LoopEntityModifier(
-		 * rotationModifier)); mSpinning = true; } }
-		 * 
-		 * }
-		 */
+		if (pSceneTouchEvent.getAction() == 1 && touchLock) {
+
+			txtView.postDelayed(new Runnable() {
+
+				@Override
+				public void run() {
+
+					/* Remove any particles from scene */
+					if (mParticleSystem != null) {
+						mScene.detachChild(mParticleSystem);
+						touchLock = false;
+					}
+				}
+			}, 100);
+
+		}
 
 		return true;
 	}
+
+	private void showSparkles(int particleSpawnCenterX, int particleSpawnCenterY) {
+
+		Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+		v.vibrate(25);
+
+		/* Define the radius of the circle for the particle emitter */
+		final float particleEmitterRadius = 40;
+
+		/* Create the particle emitter */
+		CircleOutlineParticleEmitter particleEmitter = new CircleOutlineParticleEmitter(
+				particleSpawnCenterX, particleSpawnCenterY,
+				particleEmitterRadius);
+
+		/* Define the particle system properties */
+		final float minSpawnRate = 100;
+		final float maxSpawnRate = 150;
+		final int maxParticleCount = 200;
+
+		/* Create the particle system */
+		mParticleSystem = new BatchedSpriteParticleSystem(particleEmitter,
+				minSpawnRate, maxSpawnRate, maxParticleCount,
+				ResourceManager.getInstance().mSparkle,
+				mEngine.getVertexBufferObjectManager());
+
+		/* Add an acceleration initializer to the particle system */
+		mParticleSystem
+				.addParticleInitializer(new AccelerationParticleInitializer<UncoloredSprite>(
+						25f, -25f, 3000f, 5000f));
+
+		/* Add an expire initializer to the particle system */
+		mParticleSystem
+				.addParticleInitializer(new ExpireParticleInitializer<UncoloredSprite>(
+						0.2f));
+
+		/* Add a particle modifier to the particle system */
+		mParticleSystem
+				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
+						0f, 0.5f, 0.2f, 0.8f));
+
+		/* Define min/max values for particle colors */
+		final float minRed = 2f;
+		final float maxRed = 8f;
+		final float minGreen = 0f;
+		final float maxGreen = 0f;
+		final float minBlue = 8f;
+		final float maxBlue = 8f;
+
+		ColorParticleInitializer<UncoloredSprite> colorParticleInitializer = new ColorParticleInitializer<UncoloredSprite>(
+				minRed, maxRed, minGreen, maxGreen, minBlue, maxBlue);
+		mParticleSystem.addParticleInitializer(colorParticleInitializer);
+
+		/* Attach the particle system to the Scene */
+		touchLock = true;
+		mScene.attachChild(mParticleSystem);
+
+	}
+
+	private void showSparklesAndSpin() {
+
+		if (mParticleSystem != null) {
+			mScene.detachChild(mParticleSystem);
+			touchLock = true;
+		}
+
+		/* Define the center point of the particle system spawn location */
+		final int particleSpawnCenterX = (int) (mCameraWidth * 0.5f);
+		final int particleSpawnCenterY = (int) (mCameraHeight * 0.5f);
+
+		/* Define the radius of the circle for the particle emitter */
+		final float particleEmitterRadius = 240;
+
+		/* Create the particle emitter */
+		CircleOutlineParticleEmitter particleEmitter = new CircleOutlineParticleEmitter(
+				particleSpawnCenterX, particleSpawnCenterY,
+				particleEmitterRadius);
+
+		/* Define the particle system properties */
+		final float minSpawnRate = 60;
+		final float maxSpawnRate = 200;
+		final int maxParticleCount = 300;
+
+		/* Create the particle system */
+		BatchedSpriteParticleSystem particleSystem = new BatchedSpriteParticleSystem(
+				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
+				ResourceManager.getInstance().mSparkle,
+				mEngine.getVertexBufferObjectManager());
+
+		/* Add an acceleration initializer to the particle system */
+		particleSystem
+				.addParticleInitializer(new AccelerationParticleInitializer<UncoloredSprite>(
+						25f, -25f, 50f, 100f));
+
+		/* Add an expire initializer to the particle system */
+		particleSystem
+				.addParticleInitializer(new ExpireParticleInitializer<UncoloredSprite>(
+						2f));
+
+		/* Add a particle modifier to the particle system */
+		particleSystem
+				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
+						0f, 3f, 0.2f, 1f));
+
+		/* Attach the particle system to the Scene */
+		mScene.attachChild(particleSystem);
+
+		// Spin!
+		mSpriteZodiac.registerEntityModifier(new LoopEntityModifier(
+				rotationModifier));
+		mSpinning = true;
+
+		/*
+		 * 
+		 * if (mSpinning) { mSpriteZodiac.clearEntityModifiers(); mSpinning =
+		 * false; } else { mSpriteZodiac.registerEntityModifier(new
+		 * LoopEntityModifier( rotationModifier)); mSpinning = true; }
+		 */
+
+	}
+
 }
