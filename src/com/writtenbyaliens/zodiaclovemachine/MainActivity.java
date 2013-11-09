@@ -1,6 +1,7 @@
 package com.writtenbyaliens.zodiaclovemachine;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.options.EngineOptions;
@@ -16,6 +17,7 @@ import org.andengine.entity.particle.emitter.CircleOutlineParticleEmitter;
 import org.andengine.entity.particle.initializer.AccelerationParticleInitializer;
 import org.andengine.entity.particle.initializer.ColorParticleInitializer;
 import org.andengine.entity.particle.initializer.ExpireParticleInitializer;
+import org.andengine.entity.particle.initializer.GravityParticleInitializer;
 import org.andengine.entity.particle.modifier.ScaleParticleModifier;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
@@ -26,13 +28,14 @@ import org.andengine.ui.activity.LayoutGameActivity;
 
 import android.content.Context;
 import android.os.Vibrator;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.widget.TextView;
 
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
 
 public class MainActivity extends LayoutGameActivity implements
-		IOnSceneTouchListener {
+		IOnSceneTouchListener, TextToSpeech.OnInitListener {
 
 	// Variables
 	final int mCameraWidth = 480;
@@ -43,9 +46,10 @@ public class MainActivity extends LayoutGameActivity implements
 	private boolean mSpinning = false;
 	private fPoint mSelectedSign;
 	private int mSelectedZodiacId;
+	private int mResult;
 	private boolean touchLock = false;
-
 	private TextView txtView;
+	private TextToSpeech tts;
 
 	// Entities
 	private Entity mLayer;
@@ -72,6 +76,9 @@ public class MainActivity extends LayoutGameActivity implements
 		// wake lock options in order to disable the device's display
 		// from turning off during gameplay due to inactivity
 		engineOptions.setWakeLockOptions(WakeLockOptions.SCREEN_ON);
+
+		// Set up tts
+		tts = new TextToSpeech(this, this);
 
 		// Return the engineOptions object, passing it to the engine
 		return engineOptions;
@@ -128,6 +135,16 @@ public class MainActivity extends LayoutGameActivity implements
 	@Override
 	protected int getRenderSurfaceViewID() {
 		return R.id.gameSurfaceView;
+	}
+
+	@Override
+	public void onDestroy() {
+		// Don't forget to shutdown!
+		if (tts != null) {
+			tts.stop();
+			tts.shutdown();
+		}
+		super.onDestroy();
 	}
 
 	// ----------------------------------------------------------
@@ -251,10 +268,69 @@ public class MainActivity extends LayoutGameActivity implements
 		return true;
 	}
 
+	@Override
+	public void onInit(int status) {
+		if (status == TextToSpeech.SUCCESS) {
+			// set Language
+			mResult = tts.setLanguage(Locale.US);
+			// tts.setPitch(5); // set pitch level
+			// tts.setSpeechRate(2); // set speech speed rate
+			if (mResult == TextToSpeech.LANG_MISSING_DATA
+					|| mResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+			} else {
+				// speakOut(getStarSignName(mSelectedZodiacId));
+			}
+		} else {
+			Log.e("TTS", "Initilization Failed");
+		}
+	}
+
+	// --------------------------------------------------------------------------
+	// Form methods
+	// --------------------------------------------------------------------------
+
+	private String getStarSignName(int selectedZodiacId) {
+
+		if (selectedZodiacId != 0) {
+			switch (selectedZodiacId) {
+			case Constants.ZodiacSigns.GEMINI:
+				return (getResources().getString(R.string.Gemini));
+			case Constants.ZodiacSigns.CANCER:
+				return (getResources().getString(R.string.Cancer));
+			case Constants.ZodiacSigns.LEO:
+				return (getResources().getString(R.string.Leo));
+			case Constants.ZodiacSigns.VIRGO:
+				return (getResources().getString(R.string.Virgo));
+			case Constants.ZodiacSigns.LIBRA:
+				return (getResources().getString(R.string.Libra));
+			case Constants.ZodiacSigns.SCORPIO:
+				return (getResources().getString(R.string.Scorpio));
+			case Constants.ZodiacSigns.SAGITTARIUS:
+				return (getResources().getString(R.string.Sagittarius));
+			case Constants.ZodiacSigns.CAPRICORN:
+				return (getResources().getString(R.string.Capricorn));
+			case Constants.ZodiacSigns.AQUARIUS:
+				return (getResources().getString(R.string.Aquarius));
+			case Constants.ZodiacSigns.PISCES:
+				return (getResources().getString(R.string.Pisces));
+			case Constants.ZodiacSigns.ARIES:
+				showSparklesAndSpin();
+				return (getResources().getString(R.string.Aries));
+			case Constants.ZodiacSigns.TAURUS:
+				return (getResources().getString(R.string.Taurus));
+			}
+		}
+
+		return "";
+
+	}
+
 	private void showSparkles(int particleSpawnCenterX, int particleSpawnCenterY) {
 
 		Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 		v.vibrate(25);
+
+		speakOut(getStarSignName(mSelectedZodiacId));
 
 		/* Define the radius of the circle for the particle emitter */
 		final float particleEmitterRadius = 40;
@@ -353,6 +429,10 @@ public class MainActivity extends LayoutGameActivity implements
 				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
 						0f, 3f, 0.2f, 1f));
 
+		/* Add a gravity modifier to the particle system */
+		particleSystem
+				.addParticleInitializer(new GravityParticleInitializer<UncoloredSprite>());
+
 		/* Attach the particle system to the Scene */
 		mScene.attachChild(particleSystem);
 
@@ -368,6 +448,10 @@ public class MainActivity extends LayoutGameActivity implements
 		 * LoopEntityModifier( rotationModifier)); mSpinning = true; }
 		 */
 
+	}
+
+	private void speakOut(String words) {
+		tts.speak(words, TextToSpeech.QUEUE_FLUSH, null);
 	}
 
 }
