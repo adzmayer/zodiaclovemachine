@@ -10,4 +10,8 @@ public class fPoint {
 		this.y = y;
 	}
 
+	public fPoint() {
+		// TODO Auto-generated constructor stub
+	}
+
 }

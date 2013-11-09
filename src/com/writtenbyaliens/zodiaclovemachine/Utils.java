@@ -1,5 +1,6 @@
 package com.writtenbyaliens.zodiaclovemachine;
 
+import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.Constants;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
 
 public final class Utils {

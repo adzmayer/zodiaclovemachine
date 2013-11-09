@@ -32,6 +32,7 @@ import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.Constants;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
 
 public class MainActivity extends LayoutGameActivity implements
@@ -198,6 +199,8 @@ public class MainActivity extends LayoutGameActivity implements
 	@Override
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
 
+		fPoint centreSign;
+
 		Log.d("onSceneTouchEvent",
 				"x:" + pSceneTouchEvent.getX() + "  y:"
 						+ pSceneTouchEvent.getY() + " Action:"
@@ -209,41 +212,12 @@ public class MainActivity extends LayoutGameActivity implements
 		mSelectedZodiacId = Utils.returnZodiacSign(mSelectedSign);
 
 		if (pSceneTouchEvent.getAction() == 0 && mSelectedZodiacId != 0) {
-			switch (mSelectedZodiacId) {
-			case Constants.ZodiacSigns.GEMINI:
-
-				break;
-			case Constants.ZodiacSigns.CANCER:
-				break;
-			case Constants.ZodiacSigns.LEO:
-				break;
-			case Constants.ZodiacSigns.VIRGO:
-				break;
-			case Constants.ZodiacSigns.LIBRA:
-				break;
-			case Constants.ZodiacSigns.SCORPIO:
-				break;
-			case Constants.ZodiacSigns.SAGITTARIUS:
-				break;
-			case Constants.ZodiacSigns.CAPRICORN:
-				break;
-			case Constants.ZodiacSigns.AQUARIUS:
-				break;
-			case Constants.ZodiacSigns.PISCES:
-				break;
-			case Constants.ZodiacSigns.ARIES:
-				showSparklesAndSpin();
-				break;
-			case Constants.ZodiacSigns.TAURUS:
-				break;
-			default:
-				break;
-
-			}
 
 			if (!touchLock & mSpinning == false) {
-				showSparkles((int) pSceneTouchEvent.getX(),
-						(int) pSceneTouchEvent.getY());
+				centreSign = getStarSignCentrePoint(mSelectedZodiacId);
+				showSparkles((int) centreSign.x, (int) centreSign.y);
+				// showSparkles((int) pSceneTouchEvent.getX(),
+				// (int) pSceneTouchEvent.getY());
 			}
 
 		}
@@ -322,6 +296,67 @@ public class MainActivity extends LayoutGameActivity implements
 		}
 
 		return "";
+
+	}
+
+	private fPoint getStarSignCentrePoint(int selectedZodiacId) {
+
+		fPoint centre = new fPoint();
+
+		if (selectedZodiacId != 0) {
+			switch (selectedZodiacId) {
+			case Constants.ZodiacSigns.GEMINI:
+				centre.x = Constants.ZodiacSignCentrePoints.GEMINI_X;
+				centre.y = Constants.ZodiacSignCentrePoints.GEMINI_Y;
+				return (centre);
+			case Constants.ZodiacSigns.CANCER:
+				centre.x = Constants.ZodiacSignCentrePoints.CANCER_X;
+				centre.y = Constants.ZodiacSignCentrePoints.CANCER_Y;
+				return (centre);
+			case Constants.ZodiacSigns.LEO:
+				centre.x = Constants.ZodiacSignCentrePoints.LEO_X;
+				centre.y = Constants.ZodiacSignCentrePoints.LEO_Y;
+				return (centre);
+			case Constants.ZodiacSigns.VIRGO:
+				centre.x = Constants.ZodiacSignCentrePoints.VIRGO_X;
+				centre.y = Constants.ZodiacSignCentrePoints.VIRGO_Y;
+				return (centre);
+			case Constants.ZodiacSigns.LIBRA:
+				centre.x = Constants.ZodiacSignCentrePoints.LIBRA_X;
+				centre.y = Constants.ZodiacSignCentrePoints.LIBRA_Y;
+				return (centre);
+			case Constants.ZodiacSigns.SCORPIO:
+				centre.x = Constants.ZodiacSignCentrePoints.SCORPIO_X;
+				centre.y = Constants.ZodiacSignCentrePoints.SCORPIO_Y;
+				return (centre);
+			case Constants.ZodiacSigns.SAGITTARIUS:
+				centre.x = Constants.ZodiacSignCentrePoints.SAGITTARIUS_X;
+				centre.y = Constants.ZodiacSignCentrePoints.SAGITTARIUS_Y;
+				return (centre);
+			case Constants.ZodiacSigns.CAPRICORN:
+				centre.x = Constants.ZodiacSignCentrePoints.CAPRICORN_X;
+				centre.y = Constants.ZodiacSignCentrePoints.CAPRICORN_Y;
+				return (centre);
+			case Constants.ZodiacSigns.AQUARIUS:
+				centre.x = Constants.ZodiacSignCentrePoints.AQUARIUS_X;
+				centre.y = Constants.ZodiacSignCentrePoints.AQUARIUS_Y;
+				return (centre);
+			case Constants.ZodiacSigns.PISCES:
+				centre.x = Constants.ZodiacSignCentrePoints.PISCES_X;
+				centre.y = Constants.ZodiacSignCentrePoints.PISCES_Y;
+				return (centre);
+			case Constants.ZodiacSigns.ARIES:
+				centre.x = Constants.ZodiacSignCentrePoints.ARIES_X;
+				centre.y = Constants.ZodiacSignCentrePoints.ARIES_Y;
+				return (centre);
+			case Constants.ZodiacSigns.TAURUS:
+				centre.x = Constants.ZodiacSignCentrePoints.TAURUS_X;
+				centre.y = Constants.ZodiacSignCentrePoints.TAURUS_Y;
+				return (centre);
+			}
+		}
+
+		return centre;
 
 	}
 
