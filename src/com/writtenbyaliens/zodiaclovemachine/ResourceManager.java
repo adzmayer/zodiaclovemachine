@@ -21,6 +21,7 @@ public class ResourceManager {
 	// Public variables
 	public ITextureRegion zodiacCircle;
 	public ITextureRegion sparkle;
+	public ITextureRegion cloud;
 	public ITextureRegion aquarius;
 	public ITextureRegion aries;
 	public ITextureRegion cancer;
@@ -61,6 +62,9 @@ public class ResourceManager {
 
 		sparkle = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
 				bitmapTextureAtlas, pContext, "sparkle01.png");
+
+		cloud = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
+				bitmapTextureAtlas, pContext, "smoke01.png");
 
 		aquarius = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
 				bitmapTextureAtlas, pContext, "aquarius.png");

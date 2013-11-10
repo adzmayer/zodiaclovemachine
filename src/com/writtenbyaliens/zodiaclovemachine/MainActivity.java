@@ -16,6 +16,7 @@ import org.andengine.entity.modifier.RotationModifier;
 import org.andengine.entity.particle.BatchedSpriteParticleSystem;
 import org.andengine.entity.particle.emitter.CircleOutlineParticleEmitter;
 import org.andengine.entity.particle.initializer.AccelerationParticleInitializer;
+import org.andengine.entity.particle.initializer.AlphaParticleInitializer;
 import org.andengine.entity.particle.initializer.ColorParticleInitializer;
 import org.andengine.entity.particle.initializer.ExpireParticleInitializer;
 import org.andengine.entity.particle.initializer.GravityParticleInitializer;
@@ -63,6 +64,7 @@ public class MainActivity extends LayoutGameActivity implements
 	private Sprite mSpriteSecondChoice;
 	private BatchedSpriteParticleSystem mParticleSystemFirstChoice;
 	private BatchedSpriteParticleSystem mParticleSystemSecondChoice;
+	private BatchedSpriteParticleSystem mParticleSystemBackground;
 
 	// ----------------------------------------------------------
 	// Andengine lifecycle
@@ -109,14 +111,12 @@ public class MainActivity extends LayoutGameActivity implements
 			throws IOException {
 		mScene = new Scene();
 
-		mLayerBackground = new Entity();
-		mScene.attachChild(mLayerBackground);
+		addBackground();
 
 		mLayer = new Entity();
 		mScene.attachChild(mLayer);
 		mScene.setOnSceneTouchListener(this);
 
-		addBackground();
 		addSprites();
 		buildStarSigns();
 
@@ -180,14 +180,6 @@ public class MainActivity extends LayoutGameActivity implements
 	}
 
 	// --------------------------------------------------------------------------
-	// Background methods
-	// --------------------------------------------------------------------------
-
-	private void addBackground() {
-
-	}
-
-	// --------------------------------------------------------------------------
 	// Listeners
 	// --------------------------------------------------------------------------
 
@@ -222,6 +214,7 @@ public class MainActivity extends LayoutGameActivity implements
 		// Check to see if it is within the centre circle, if not select a sign
 		if (Utils.isTouchedInCircle(96, mSelectedSignCoords)) {
 			Log.d("onSceneTouchEvent", "centre touched");
+			showSparklesAndSpin();
 		} else {
 
 			mSelectedZodiacId = Utils.returnZodiacSign(mSelectedSignCoords);
@@ -390,6 +383,10 @@ public class MainActivity extends LayoutGameActivity implements
 		return null;
 	}
 
+	// --------------------------------------------------------------------------
+	// Graphics
+	// --------------------------------------------------------------------------
+
 	private void showSparkles(int particleSpawnCenterX, int particleSpawnCenterY) {
 
 		Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -509,6 +506,73 @@ public class MainActivity extends LayoutGameActivity implements
 
 	}
 
+	private void addBackground() {
+
+		final int particleSpawnCenterX = (int) (mCameraWidth * 0.5f);
+		final int particleSpawnCenterY = (int) (mCameraHeight * 0.5f);
+
+		/* Define the radius of the circle for the particle emitter */
+		final float particleEmitterRadius = 50;
+
+		/* Create the particle emitter */
+		CircleOutlineParticleEmitter particleEmitter = new CircleOutlineParticleEmitter(
+				particleSpawnCenterX, particleSpawnCenterY,
+				particleEmitterRadius);
+
+		/* Define the particle system properties */
+		final float minSpawnRate = 1;
+		final float maxSpawnRate = 20;
+		final int maxParticleCount = 20;
+
+		/* Create the particle system */
+		mParticleSystemBackground = new BatchedSpriteParticleSystem(
+				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
+				ResourceManager.getInstance().cloud,
+				mEngine.getVertexBufferObjectManager());
+
+		/* Add an acceleration initializer to the particle system */
+		mParticleSystemBackground
+				.addParticleInitializer(new AccelerationParticleInitializer<UncoloredSprite>(
+						-360f, 360f, -360f, 360f));
+
+		/* Add an expire initializer to the particle system */
+		mParticleSystemBackground
+				.addParticleInitializer(new ExpireParticleInitializer<UncoloredSprite>(
+						4));
+
+		/* Add a particle modifier to the particle system */
+		mParticleSystemBackground
+				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
+						0f, 1f, 0.2f, 4f));
+
+		/* Define the alpha values */
+		final float minAlpha = 0.7f;
+		final float maxAlpha = 1;
+
+		AlphaParticleInitializer<UncoloredSprite> alphaParticleInitializer = new AlphaParticleInitializer<UncoloredSprite>(
+				minAlpha, maxAlpha);
+
+		mParticleSystemBackground
+				.addParticleInitializer(alphaParticleInitializer);
+
+		/* Define min/max values for particle colors */
+		final float minRed = 0f;
+		final float maxRed = 0f;
+		final float minGreen = 0f;
+		final float maxGreen = 0f;
+		final float minBlue = 2f;
+		final float maxBlue = 2f;
+
+		ColorParticleInitializer<UncoloredSprite> colorParticleInitializer = new ColorParticleInitializer<UncoloredSprite>(
+				minRed, maxRed, minGreen, maxGreen, minBlue, maxBlue);
+		mParticleSystemBackground
+				.addParticleInitializer(colorParticleInitializer);
+
+		/* Attach the particle system to the Scene */
+		mScene.attachChild(mParticleSystemBackground);
+
+	}
+
 	private void updateChoice(boolean isFirstChoice) {
 
 		ITextureRegion zodiacTexture;
@@ -617,6 +681,10 @@ public class MainActivity extends LayoutGameActivity implements
 		mSpinning = true;
 
 	}
+
+	// --------------------------------------------------------------------------
+	// Speech
+	// --------------------------------------------------------------------------
 
 	private void speakOut(String words) {
 		tts.speak(words, TextToSpeech.QUEUE_FLUSH, null);
