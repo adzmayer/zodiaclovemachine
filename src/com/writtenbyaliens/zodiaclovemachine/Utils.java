@@ -20,6 +20,25 @@ public final class Utils {
 		return ((b1 == b2) && (b2 == b3));
 	}
 
+	public static double distanceBetweenPoints(fPoint p, fPoint q) {
+		double dx = p.x - q.x; // horizontal difference
+		double dy = p.y - q.y; // vertical difference
+		double dist = Math.sqrt(dx * dx + dy * dy); // distance using Pythagoras
+													// theorem
+		return dist;
+	}
+
+	public static boolean isTouchedInCircle(double radius, fPoint touched) {
+
+		fPoint centre = new fPoint(240, 400);
+
+		if (distanceBetweenPoints(centre, touched) <= radius) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public static int returnZodiacSign(fPoint selectedSign) {
 
 		int sign = 0;

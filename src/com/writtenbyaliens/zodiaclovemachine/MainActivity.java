@@ -45,7 +45,7 @@ public class MainActivity extends LayoutGameActivity implements
 	private Scene mScene;
 	private GameManager mGameManager;
 	private boolean mSpinning = false;
-	private fPoint mSelectedSign;
+	private fPoint mSelectedSignCoords;
 	private int mSelectedZodiacId;
 	private int mResult;
 	private boolean touchLock = false;
@@ -206,37 +206,44 @@ public class MainActivity extends LayoutGameActivity implements
 						+ pSceneTouchEvent.getY() + " Action:"
 						+ pSceneTouchEvent.getAction());
 
-		mSelectedSign = new fPoint(pSceneTouchEvent.getX(),
+		// Get point touched
+		mSelectedSignCoords = new fPoint(pSceneTouchEvent.getX(),
 				pSceneTouchEvent.getY());
 
-		mSelectedZodiacId = Utils.returnZodiacSign(mSelectedSign);
+		// Check to see if it is within the centre circle, if not select a sign
+		if (Utils.isTouchedInCircle(96, mSelectedSignCoords)) {
+			Log.d("onSceneTouchEvent", "centre touched");
+		} else {
 
-		if (pSceneTouchEvent.getAction() == 0 && mSelectedZodiacId != 0) {
+			mSelectedZodiacId = Utils.returnZodiacSign(mSelectedSignCoords);
 
-			if (!touchLock & mSpinning == false) {
-				centreSign = getStarSignCentrePoint(mSelectedZodiacId);
-				showSparkles((int) centreSign.x, (int) centreSign.y);
-				// showSparkles((int) pSceneTouchEvent.getX(),
-				// (int) pSceneTouchEvent.getY());
+			if (pSceneTouchEvent.getAction() == 0 && mSelectedZodiacId != 0) {
+
+				if (!touchLock & mSpinning == false) {
+					centreSign = getStarSignCentrePoint(mSelectedZodiacId);
+					showSparkles((int) centreSign.x, (int) centreSign.y);
+					// showSparkles((int) pSceneTouchEvent.getX(),
+					// (int) pSceneTouchEvent.getY());
+				}
+
 			}
 
-		}
+			if (pSceneTouchEvent.getAction() == 1 && touchLock) {
 
-		if (pSceneTouchEvent.getAction() == 1 && touchLock) {
+				txtView.postDelayed(new Runnable() {
 
-			txtView.postDelayed(new Runnable() {
+					@Override
+					public void run() {
 
-				@Override
-				public void run() {
-
-					/* Remove any particles from scene */
-					if (mParticleSystem != null) {
-						mScene.detachChild(mParticleSystem);
-						touchLock = false;
+						/* Remove any particles from scene */
+						if (mParticleSystem != null) {
+							mScene.detachChild(mParticleSystem);
+							touchLock = false;
+						}
 					}
-				}
-			}, 100);
+				}, 100);
 
+			}
 		}
 
 		return true;
