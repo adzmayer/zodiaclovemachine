@@ -48,15 +48,18 @@ public class MainActivity extends LayoutGameActivity implements
 	private fPoint mSelectedSignCoords;
 	private int mSelectedZodiacId;
 	private int mResult;
-	private boolean touchLock = false;
+	// private boolean touchLock = false;
 	private TextView txtView;
 	private TextToSpeech tts;
+	private boolean firstChoiceJustAdded = false;
+	private boolean bothChoicesMade = false;
 
 	// Entities
 	private Entity mLayer;
 	private Entity mLayerBackground;
 	private Sprite mSpriteZodiac;
-	private BatchedSpriteParticleSystem mParticleSystem;
+	private BatchedSpriteParticleSystem mParticleSystemFirstChoice;
+	private BatchedSpriteParticleSystem mParticleSystemSecondChoice;
 
 	// ----------------------------------------------------------
 	// Andengine lifecycle
@@ -219,31 +222,53 @@ public class MainActivity extends LayoutGameActivity implements
 
 			if (pSceneTouchEvent.getAction() == 0 && mSelectedZodiacId != 0) {
 
-				if (!touchLock & mSpinning == false) {
+				if (mSpinning == false) {
 					centreSign = getStarSignCentrePoint(mSelectedZodiacId);
-					showSparkles((int) centreSign.x, (int) centreSign.y);
-					// showSparkles((int) pSceneTouchEvent.getX(),
-					// (int) pSceneTouchEvent.getY());
+
+					if (firstChoiceJustAdded) {
+
+						Log.d("onSceneTouchEvent", "firstChoiceJustAdded");
+
+						if (bothChoicesMade) {
+
+							Log.d("onSceneTouchEvent", "bothChoicesMade");
+
+							/* Remove any particles from scene */
+							if (mParticleSystemSecondChoice != null) {
+								mScene.detachChild(mParticleSystemSecondChoice);
+							}
+
+						}
+
+						firstChoiceJustAdded = false;
+						bothChoicesMade = true;
+						showSparklesSecondChoice((int) centreSign.x,
+								(int) centreSign.y);
+
+					} else {
+
+						Log.d("onSceneTouchEvent", "secondChoiceJustAdded");
+
+						if (bothChoicesMade) {
+
+							Log.d("onSceneTouchEvent", "bothChoicesMade");
+
+							/* Remove any particles from scene */
+							if (mParticleSystemFirstChoice != null) {
+								mScene.detachChild(mParticleSystemFirstChoice);
+
+							}
+
+						}
+
+						firstChoiceJustAdded = true;
+						showSparkles((int) centreSign.x, (int) centreSign.y);
+					}
+
 				}
 
 			}
 
-			if (pSceneTouchEvent.getAction() == 1 && touchLock) {
-
-				txtView.postDelayed(new Runnable() {
-
-					@Override
-					public void run() {
-
-						/* Remove any particles from scene */
-						if (mParticleSystem != null) {
-							mScene.detachChild(mParticleSystem);
-							touchLock = false;
-						}
-					}
-				}, 100);
-
-			}
 		}
 
 		return true;
@@ -388,23 +413,23 @@ public class MainActivity extends LayoutGameActivity implements
 		final int maxParticleCount = 200;
 
 		/* Create the particle system */
-		mParticleSystem = new BatchedSpriteParticleSystem(particleEmitter,
-				minSpawnRate, maxSpawnRate, maxParticleCount,
+		mParticleSystemFirstChoice = new BatchedSpriteParticleSystem(
+				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
 				ResourceManager.getInstance().mSparkle,
 				mEngine.getVertexBufferObjectManager());
 
 		/* Add an acceleration initializer to the particle system */
-		mParticleSystem
+		mParticleSystemFirstChoice
 				.addParticleInitializer(new AccelerationParticleInitializer<UncoloredSprite>(
 						25f, -25f, 3000f, 5000f));
 
 		/* Add an expire initializer to the particle system */
-		mParticleSystem
+		mParticleSystemFirstChoice
 				.addParticleInitializer(new ExpireParticleInitializer<UncoloredSprite>(
 						0.2f));
 
 		/* Add a particle modifier to the particle system */
-		mParticleSystem
+		mParticleSystemFirstChoice
 				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
 						0f, 0.5f, 0.2f, 0.8f));
 
@@ -418,19 +443,79 @@ public class MainActivity extends LayoutGameActivity implements
 
 		ColorParticleInitializer<UncoloredSprite> colorParticleInitializer = new ColorParticleInitializer<UncoloredSprite>(
 				minRed, maxRed, minGreen, maxGreen, minBlue, maxBlue);
-		mParticleSystem.addParticleInitializer(colorParticleInitializer);
+		mParticleSystemFirstChoice
+				.addParticleInitializer(colorParticleInitializer);
 
 		/* Attach the particle system to the Scene */
-		touchLock = true;
-		mScene.attachChild(mParticleSystem);
+		mScene.attachChild(mParticleSystemFirstChoice);
+
+	}
+
+	private void showSparklesSecondChoice(int particleSpawnCenterX,
+			int particleSpawnCenterY) {
+
+		Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+		v.vibrate(25);
+
+		speakOut(getStarSignName(mSelectedZodiacId));
+
+		/* Define the radius of the circle for the particle emitter */
+		final float particleEmitterRadius = 40;
+
+		/* Create the particle emitter */
+		CircleOutlineParticleEmitter particleEmitter = new CircleOutlineParticleEmitter(
+				particleSpawnCenterX, particleSpawnCenterY,
+				particleEmitterRadius);
+
+		/* Define the particle system properties */
+		final float minSpawnRate = 100;
+		final float maxSpawnRate = 150;
+		final int maxParticleCount = 200;
+
+		/* Create the particle system */
+		mParticleSystemSecondChoice = new BatchedSpriteParticleSystem(
+				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
+				ResourceManager.getInstance().mSparkle,
+				mEngine.getVertexBufferObjectManager());
+
+		/* Add an acceleration initializer to the particle system */
+		mParticleSystemSecondChoice
+				.addParticleInitializer(new AccelerationParticleInitializer<UncoloredSprite>(
+						25f, -25f, 3000f, 5000f));
+
+		/* Add an expire initializer to the particle system */
+		mParticleSystemSecondChoice
+				.addParticleInitializer(new ExpireParticleInitializer<UncoloredSprite>(
+						0.2f));
+
+		/* Add a particle modifier to the particle system */
+		mParticleSystemSecondChoice
+				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
+						0f, 0.5f, 0.2f, 0.8f));
+
+		/* Define min/max values for particle colors */
+		final float minRed = 3f;
+		final float maxRed = 6f;
+		final float minGreen = 9f;
+		final float maxGreen = 9f;
+		final float minBlue = 2f;
+		final float maxBlue = 2f;
+
+		ColorParticleInitializer<UncoloredSprite> colorParticleInitializer = new ColorParticleInitializer<UncoloredSprite>(
+				minRed, maxRed, minGreen, maxGreen, minBlue, maxBlue);
+		mParticleSystemSecondChoice
+				.addParticleInitializer(colorParticleInitializer);
+
+		/* Attach the particle system to the Scene */
+		mScene.attachChild(mParticleSystemSecondChoice);
 
 	}
 
 	private void showSparklesAndSpin() {
 
-		if (mParticleSystem != null) {
-			mScene.detachChild(mParticleSystem);
-			touchLock = true;
+		if (mParticleSystemFirstChoice != null) {
+			mScene.detachChild(mParticleSystemFirstChoice);
+
 		}
 
 		/* Define the center point of the particle system spawn location */
