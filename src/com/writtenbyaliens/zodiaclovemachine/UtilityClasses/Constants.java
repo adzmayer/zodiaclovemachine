@@ -44,4 +44,7 @@ public class Constants {
 		public static final int TAURUS_Y = 562;
 	}
 
+	public static final int FIRST_CHOICE = 1;
+	public static final int SECOND_CHOICE = 2;
+
 }

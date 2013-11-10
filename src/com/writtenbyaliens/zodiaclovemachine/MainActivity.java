@@ -1,6 +1,7 @@
 package com.writtenbyaliens.zodiaclovemachine;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import org.andengine.engine.camera.Camera;
@@ -24,15 +25,16 @@ import org.andengine.entity.scene.Scene;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.sprite.UncoloredSprite;
 import org.andengine.input.touch.TouchEvent;
+import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.ui.activity.LayoutGameActivity;
 
 import android.content.Context;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
-import android.widget.TextView;
 
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.Constants;
+import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.StarSign;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
 
 public class MainActivity extends LayoutGameActivity implements
@@ -48,16 +50,17 @@ public class MainActivity extends LayoutGameActivity implements
 	private fPoint mSelectedSignCoords;
 	private int mSelectedZodiacId;
 	private int mResult;
-	// private boolean touchLock = false;
-	private TextView txtView;
 	private TextToSpeech tts;
 	private boolean firstChoiceJustAdded = false;
 	private boolean bothChoicesMade = false;
+	private ArrayList<StarSign> starSigns;
 
 	// Entities
 	private Entity mLayer;
 	private Entity mLayerBackground;
 	private Sprite mSpriteZodiac;
+	private Sprite mSpriteFirstChoice;
+	private Sprite mSpriteSecondChoice;
 	private BatchedSpriteParticleSystem mParticleSystemFirstChoice;
 	private BatchedSpriteParticleSystem mParticleSystemSecondChoice;
 
@@ -115,10 +118,13 @@ public class MainActivity extends LayoutGameActivity implements
 
 		addBackground();
 		addSprites();
+		buildStarSigns();
 
 		pOnCreateSceneCallback.onCreateSceneFinished(mScene);
 
-		txtView = (TextView) this.findViewById(R.id.ad_view);
+		// Set up advert here. Access this through runables - see old version in
+		// GIT
+		// txtView = (TextView) this.findViewById(R.id.ad_view);
 
 	}
 
@@ -162,7 +168,7 @@ public class MainActivity extends LayoutGameActivity implements
 
 		/* Add our marble sprite to the bottom left side of the Scene initially */
 		mSpriteZodiac = new Sprite(positionX, positionY,
-				ResourceManager.getInstance().mZodiacCircle,
+				ResourceManager.getInstance().zodiacCircle,
 				mEngine.getVertexBufferObjectManager());
 
 		mSpriteZodiac.setHeight(mCameraWidth);
@@ -223,7 +229,8 @@ public class MainActivity extends LayoutGameActivity implements
 			if (pSceneTouchEvent.getAction() == 0 && mSelectedZodiacId != 0) {
 
 				if (mSpinning == false) {
-					centreSign = getStarSignCentrePoint(mSelectedZodiacId);
+					centreSign = Utils
+							.getStarSignCentrePoint(mSelectedZodiacId);
 
 					if (firstChoiceJustAdded) {
 
@@ -244,6 +251,7 @@ public class MainActivity extends LayoutGameActivity implements
 						bothChoicesMade = true;
 						showSparklesSecondChoice((int) centreSign.x,
 								(int) centreSign.y);
+						updateChoice(false);
 
 					} else {
 
@@ -263,6 +271,7 @@ public class MainActivity extends LayoutGameActivity implements
 
 						firstChoiceJustAdded = true;
 						showSparkles((int) centreSign.x, (int) centreSign.y);
+						updateChoice(true);
 					}
 
 				}
@@ -278,13 +287,12 @@ public class MainActivity extends LayoutGameActivity implements
 	public void onInit(int status) {
 		if (status == TextToSpeech.SUCCESS) {
 			// set Language
-			mResult = tts.setLanguage(Locale.US);
-			// tts.setPitch(5); // set pitch level
-			// tts.setSpeechRate(2); // set speech speed rate
+			mResult = tts.setLanguage(Locale.getDefault());
+			tts.setPitch(1f); // set pitch level
+			tts.setSpeechRate(1.5f); // set speech speed rate
+
 			if (mResult == TextToSpeech.LANG_MISSING_DATA
 					|| mResult == TextToSpeech.LANG_NOT_SUPPORTED) {
-			} else {
-				// speakOut(getStarSignName(mSelectedZodiacId));
 			}
 		} else {
 			Log.e("TTS", "Initilization Failed");
@@ -292,104 +300,94 @@ public class MainActivity extends LayoutGameActivity implements
 	}
 
 	// --------------------------------------------------------------------------
-	// Form methods
+	// Zodiac methods
 	// --------------------------------------------------------------------------
 
-	private String getStarSignName(int selectedZodiacId) {
+	private void buildStarSigns() {
+		starSigns = new ArrayList<StarSign>();
 
-		if (selectedZodiacId != 0) {
-			switch (selectedZodiacId) {
-			case Constants.ZodiacSigns.GEMINI:
-				return (getResources().getString(R.string.Gemini));
-			case Constants.ZodiacSigns.CANCER:
-				return (getResources().getString(R.string.Cancer));
-			case Constants.ZodiacSigns.LEO:
-				return (getResources().getString(R.string.Leo));
-			case Constants.ZodiacSigns.VIRGO:
-				return (getResources().getString(R.string.Virgo));
-			case Constants.ZodiacSigns.LIBRA:
-				return (getResources().getString(R.string.Libra));
-			case Constants.ZodiacSigns.SCORPIO:
-				return (getResources().getString(R.string.Scorpio));
-			case Constants.ZodiacSigns.SAGITTARIUS:
-				return (getResources().getString(R.string.Sagittarius));
-			case Constants.ZodiacSigns.CAPRICORN:
-				return (getResources().getString(R.string.Capricorn));
-			case Constants.ZodiacSigns.AQUARIUS:
-				return (getResources().getString(R.string.Aquarius));
-			case Constants.ZodiacSigns.PISCES:
-				return (getResources().getString(R.string.Pisces));
-			case Constants.ZodiacSigns.ARIES:
-				showSparklesAndSpin();
-				return (getResources().getString(R.string.Aries));
-			case Constants.ZodiacSigns.TAURUS:
-				return (getResources().getString(R.string.Taurus));
-			}
-		}
+		StarSign starSign = new StarSign(Constants.ZodiacSigns.AQUARIUS,
+				getResources().getString(R.string.Aquarius),
+				Utils.getStarSignCentrePoint(Constants.ZodiacSigns.AQUARIUS),
+				ResourceManager.getInstance().aquarius);
+		starSigns.add(starSign);
 
-		return "";
+		starSign = new StarSign(Constants.ZodiacSigns.ARIES, getResources()
+				.getString(R.string.Aries),
+				Utils.getStarSignCentrePoint(Constants.ZodiacSigns.ARIES),
+				ResourceManager.getInstance().aries);
+		starSigns.add(starSign);
+
+		starSign = new StarSign(Constants.ZodiacSigns.CANCER, getResources()
+				.getString(R.string.Cancer),
+				Utils.getStarSignCentrePoint(Constants.ZodiacSigns.CANCER),
+				ResourceManager.getInstance().cancer);
+		starSigns.add(starSign);
+
+		starSign = new StarSign(Constants.ZodiacSigns.CAPRICORN, getResources()
+				.getString(R.string.Capricorn),
+				Utils.getStarSignCentrePoint(Constants.ZodiacSigns.CAPRICORN),
+				ResourceManager.getInstance().capricorn);
+		starSigns.add(starSign);
+
+		starSign = new StarSign(Constants.ZodiacSigns.GEMINI, getResources()
+				.getString(R.string.Gemini),
+				Utils.getStarSignCentrePoint(Constants.ZodiacSigns.GEMINI),
+				ResourceManager.getInstance().gemini);
+		starSigns.add(starSign);
+
+		starSign = new StarSign(Constants.ZodiacSigns.LEO, getResources()
+				.getString(R.string.Leo),
+				Utils.getStarSignCentrePoint(Constants.ZodiacSigns.LEO),
+				ResourceManager.getInstance().leo);
+		starSigns.add(starSign);
+
+		starSign = new StarSign(Constants.ZodiacSigns.LIBRA, getResources()
+				.getString(R.string.Libra),
+				Utils.getStarSignCentrePoint(Constants.ZodiacSigns.LIBRA),
+				ResourceManager.getInstance().libra);
+		starSigns.add(starSign);
+
+		starSign = new StarSign(Constants.ZodiacSigns.PISCES, getResources()
+				.getString(R.string.Pisces),
+				Utils.getStarSignCentrePoint(Constants.ZodiacSigns.PISCES),
+				ResourceManager.getInstance().pisces);
+		starSigns.add(starSign);
+
+		starSign = new StarSign(
+				Constants.ZodiacSigns.SAGITTARIUS,
+				getResources().getString(R.string.Sagittarius),
+				Utils.getStarSignCentrePoint(Constants.ZodiacSigns.SAGITTARIUS),
+				ResourceManager.getInstance().sagittarius);
+		starSigns.add(starSign);
+
+		starSign = new StarSign(Constants.ZodiacSigns.SCORPIO, getResources()
+				.getString(R.string.Scorpio),
+				Utils.getStarSignCentrePoint(Constants.ZodiacSigns.SCORPIO),
+				ResourceManager.getInstance().scorpio);
+		starSigns.add(starSign);
+
+		starSign = new StarSign(Constants.ZodiacSigns.TAURUS, getResources()
+				.getString(R.string.Taurus),
+				Utils.getStarSignCentrePoint(Constants.ZodiacSigns.TAURUS),
+				ResourceManager.getInstance().taurus);
+		starSigns.add(starSign);
+
+		starSign = new StarSign(Constants.ZodiacSigns.VIRGO, getResources()
+				.getString(R.string.Virgo),
+				Utils.getStarSignCentrePoint(Constants.ZodiacSigns.VIRGO),
+				ResourceManager.getInstance().virgo);
+		starSigns.add(starSign);
 
 	}
 
-	private fPoint getStarSignCentrePoint(int selectedZodiacId) {
-
-		fPoint centre = new fPoint();
-
-		if (selectedZodiacId != 0) {
-			switch (selectedZodiacId) {
-			case Constants.ZodiacSigns.GEMINI:
-				centre.x = Constants.ZodiacSignCentrePoints.GEMINI_X;
-				centre.y = Constants.ZodiacSignCentrePoints.GEMINI_Y;
-				return (centre);
-			case Constants.ZodiacSigns.CANCER:
-				centre.x = Constants.ZodiacSignCentrePoints.CANCER_X;
-				centre.y = Constants.ZodiacSignCentrePoints.CANCER_Y;
-				return (centre);
-			case Constants.ZodiacSigns.LEO:
-				centre.x = Constants.ZodiacSignCentrePoints.LEO_X;
-				centre.y = Constants.ZodiacSignCentrePoints.LEO_Y;
-				return (centre);
-			case Constants.ZodiacSigns.VIRGO:
-				centre.x = Constants.ZodiacSignCentrePoints.VIRGO_X;
-				centre.y = Constants.ZodiacSignCentrePoints.VIRGO_Y;
-				return (centre);
-			case Constants.ZodiacSigns.LIBRA:
-				centre.x = Constants.ZodiacSignCentrePoints.LIBRA_X;
-				centre.y = Constants.ZodiacSignCentrePoints.LIBRA_Y;
-				return (centre);
-			case Constants.ZodiacSigns.SCORPIO:
-				centre.x = Constants.ZodiacSignCentrePoints.SCORPIO_X;
-				centre.y = Constants.ZodiacSignCentrePoints.SCORPIO_Y;
-				return (centre);
-			case Constants.ZodiacSigns.SAGITTARIUS:
-				centre.x = Constants.ZodiacSignCentrePoints.SAGITTARIUS_X;
-				centre.y = Constants.ZodiacSignCentrePoints.SAGITTARIUS_Y;
-				return (centre);
-			case Constants.ZodiacSigns.CAPRICORN:
-				centre.x = Constants.ZodiacSignCentrePoints.CAPRICORN_X;
-				centre.y = Constants.ZodiacSignCentrePoints.CAPRICORN_Y;
-				return (centre);
-			case Constants.ZodiacSigns.AQUARIUS:
-				centre.x = Constants.ZodiacSignCentrePoints.AQUARIUS_X;
-				centre.y = Constants.ZodiacSignCentrePoints.AQUARIUS_Y;
-				return (centre);
-			case Constants.ZodiacSigns.PISCES:
-				centre.x = Constants.ZodiacSignCentrePoints.PISCES_X;
-				centre.y = Constants.ZodiacSignCentrePoints.PISCES_Y;
-				return (centre);
-			case Constants.ZodiacSigns.ARIES:
-				centre.x = Constants.ZodiacSignCentrePoints.ARIES_X;
-				centre.y = Constants.ZodiacSignCentrePoints.ARIES_Y;
-				return (centre);
-			case Constants.ZodiacSigns.TAURUS:
-				centre.x = Constants.ZodiacSignCentrePoints.TAURUS_X;
-				centre.y = Constants.ZodiacSignCentrePoints.TAURUS_Y;
-				return (centre);
+	private StarSign getStarSignById(int id) {
+		for (StarSign starSign : starSigns) {
+			if (starSign.getId() == id) {
+				return starSign;
 			}
 		}
-
-		return centre;
-
+		return null;
 	}
 
 	private void showSparkles(int particleSpawnCenterX, int particleSpawnCenterY) {
@@ -397,7 +395,7 @@ public class MainActivity extends LayoutGameActivity implements
 		Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 		v.vibrate(25);
 
-		speakOut(getStarSignName(mSelectedZodiacId));
+		speakOut(getStarSignById(mSelectedZodiacId).getName());
 
 		/* Define the radius of the circle for the particle emitter */
 		final float particleEmitterRadius = 40;
@@ -415,7 +413,7 @@ public class MainActivity extends LayoutGameActivity implements
 		/* Create the particle system */
 		mParticleSystemFirstChoice = new BatchedSpriteParticleSystem(
 				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
-				ResourceManager.getInstance().mSparkle,
+				ResourceManager.getInstance().sparkle,
 				mEngine.getVertexBufferObjectManager());
 
 		/* Add an acceleration initializer to the particle system */
@@ -457,7 +455,7 @@ public class MainActivity extends LayoutGameActivity implements
 		Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 		v.vibrate(25);
 
-		speakOut(getStarSignName(mSelectedZodiacId));
+		speakOut(getStarSignById(mSelectedZodiacId).getName());
 
 		/* Define the radius of the circle for the particle emitter */
 		final float particleEmitterRadius = 40;
@@ -475,7 +473,7 @@ public class MainActivity extends LayoutGameActivity implements
 		/* Create the particle system */
 		mParticleSystemSecondChoice = new BatchedSpriteParticleSystem(
 				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
-				ResourceManager.getInstance().mSparkle,
+				ResourceManager.getInstance().sparkle,
 				mEngine.getVertexBufferObjectManager());
 
 		/* Add an acceleration initializer to the particle system */
@@ -511,6 +509,56 @@ public class MainActivity extends LayoutGameActivity implements
 
 	}
 
+	private void updateChoice(boolean isFirstChoice) {
+
+		ITextureRegion zodiacTexture;
+
+		zodiacTexture = getStarSignById(mSelectedZodiacId).getZodiacTexture()
+				.deepCopy();
+
+		if (mSelectedZodiacId != 0) {
+
+			// Set the text of the zodiac name
+
+			// Assign the correct texture to the sprite
+
+			if (isFirstChoice) {
+				// Create selection sprites
+				mSpriteFirstChoice = new Sprite(80, 700, zodiacTexture,
+						mEngine.getVertexBufferObjectManager());
+
+				mSpriteFirstChoice.setTag(Constants.FIRST_CHOICE);
+
+				// Fade it in to the correct corner
+
+				// Add it to the scene if it isn't already
+				if (mScene.getChildByTag(Constants.FIRST_CHOICE) != null) {
+					mScene.detachChild(Constants.FIRST_CHOICE);
+				}
+				mScene.attachChild(mSpriteFirstChoice);
+
+			} else {
+				// Create selection sprites
+
+				mSpriteSecondChoice = new Sprite(400, 700, zodiacTexture,
+						mEngine.getVertexBufferObjectManager());
+
+				mSpriteSecondChoice.setTag(Constants.SECOND_CHOICE);
+
+				// Reverse the bitmap in the y axis
+				mSpriteSecondChoice.setWidth(-mSpriteSecondChoice.getWidth());
+
+				// Add it to the scene if it isn't already
+				if (mScene.getChildByTag(Constants.SECOND_CHOICE) != null) {
+					mScene.detachChild(Constants.SECOND_CHOICE);
+				}
+				mScene.attachChild(mSpriteSecondChoice);
+			}
+
+		}
+
+	}
+
 	private void showSparklesAndSpin() {
 
 		if (mParticleSystemFirstChoice != null) {
@@ -538,7 +586,7 @@ public class MainActivity extends LayoutGameActivity implements
 		/* Create the particle system */
 		BatchedSpriteParticleSystem particleSystem = new BatchedSpriteParticleSystem(
 				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
-				ResourceManager.getInstance().mSparkle,
+				ResourceManager.getInstance().sparkle,
 				mEngine.getVertexBufferObjectManager());
 
 		/* Add an acceleration initializer to the particle system */
@@ -567,13 +615,6 @@ public class MainActivity extends LayoutGameActivity implements
 		mSpriteZodiac.registerEntityModifier(new LoopEntityModifier(
 				rotationModifier));
 		mSpinning = true;
-
-		/*
-		 * 
-		 * if (mSpinning) { mSpriteZodiac.clearEntityModifiers(); mSpinning =
-		 * false; } else { mSpriteZodiac.registerEntityModifier(new
-		 * LoopEntityModifier( rotationModifier)); mSpinning = true; }
-		 */
 
 	}
 
