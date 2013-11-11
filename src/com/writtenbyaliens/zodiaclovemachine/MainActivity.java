@@ -36,6 +36,7 @@ import android.util.Log;
 
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.Constants;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.StarSign;
+import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.StopParticleModifier;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
 
 public class MainActivity extends LayoutGameActivity implements
@@ -65,6 +66,7 @@ public class MainActivity extends LayoutGameActivity implements
 	private BatchedSpriteParticleSystem mParticleSystemFirstChoice;
 	private BatchedSpriteParticleSystem mParticleSystemSecondChoice;
 	private BatchedSpriteParticleSystem mParticleSystemBackground;
+	private BatchedSpriteParticleSystem mParticleSystemSelection;
 
 	// ----------------------------------------------------------
 	// Andengine lifecycle
@@ -489,12 +491,12 @@ public class MainActivity extends LayoutGameActivity implements
 						0f, 0.5f, 0.2f, 0.8f));
 
 		/* Define min/max values for particle colors */
-		final float minRed = 3f;
-		final float maxRed = 6f;
-		final float minGreen = 9f;
-		final float maxGreen = 9f;
-		final float minBlue = 2f;
-		final float maxBlue = 2f;
+		final float minRed = 40f;
+		final float maxRed = 40f;
+		final float minGreen = 0f;
+		final float maxGreen = 0f;
+		final float minBlue = 40f;
+		final float maxBlue = 40f;
 
 		ColorParticleInitializer<UncoloredSprite> colorParticleInitializer = new ColorParticleInitializer<UncoloredSprite>(
 				minRed, maxRed, minGreen, maxGreen, minBlue, maxBlue);
@@ -504,6 +506,74 @@ public class MainActivity extends LayoutGameActivity implements
 		/* Attach the particle system to the Scene */
 		mScene.attachChild(mParticleSystemSecondChoice);
 
+	}
+
+	private void selectionParticleEffect(fPoint location) {
+
+		/* Define the radius of the circle for the particle emitter */
+		final float particleEmitterRadius = 40;
+
+		/* Create the particle emitter */
+		CircleOutlineParticleEmitter particleEmitter = new CircleOutlineParticleEmitter(
+				(int) location.x, (int) location.y, particleEmitterRadius);
+
+		/* Define the particle system properties */
+		final float minSpawnRate = 25;
+		final float maxSpawnRate = 25;
+		final int maxParticleCount = 25;
+
+		/* Create the particle system */
+		mParticleSystemSelection = new BatchedSpriteParticleSystem(
+				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
+				ResourceManager.getInstance().sparkle,
+				mEngine.getVertexBufferObjectManager());
+
+		/* Add an acceleration initializer to the particle system */
+		mParticleSystemSelection
+				.addParticleInitializer(new AccelerationParticleInitializer<UncoloredSprite>(
+						-13360f, 13360f, -13360f, 13360f));
+
+		/* Add an expire initializer to the particle system */
+		mParticleSystemSelection
+				.addParticleInitializer(new ExpireParticleInitializer<UncoloredSprite>(
+						2f));
+
+		/* Add a particle modifier to the particle system */
+		mParticleSystemSelection
+				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
+						0f, 2f, 0.1f, 4f));
+
+		mParticleSystemSelection.addParticleModifier(new StopParticleModifier(
+				mParticleSystemSelection, 0.1f));
+
+		/* Add a gravity modifier to the particle system */
+		mParticleSystemSelection
+				.addParticleInitializer(new GravityParticleInitializer<UncoloredSprite>());
+
+		/* Define min/max values for particle colors */
+		final float minRed = 255f;
+		final float maxRed = 255f;
+		final float minGreen = 255f;
+		final float maxGreen = 255f;
+		final float minBlue = 200f;
+		final float maxBlue = 244f;
+
+		ColorParticleInitializer<UncoloredSprite> colorParticleInitializer = new ColorParticleInitializer<UncoloredSprite>(
+				minRed, maxRed, minGreen, maxGreen, minBlue, maxBlue);
+		mParticleSystemSelection
+				.addParticleInitializer(colorParticleInitializer);
+
+		/* Define the alpha values */
+		final float minAlpha = 0.5f;
+		final float maxAlpha = 1;
+
+		AlphaParticleInitializer<UncoloredSprite> alphaParticleInitializer = new AlphaParticleInitializer<UncoloredSprite>(
+				minAlpha, maxAlpha);
+		mParticleSystemSelection
+				.addParticleInitializer(alphaParticleInitializer);
+
+		/* Attach the particle system to the Scene */
+		mScene.attachChild(mParticleSystemSelection);
 	}
 
 	private void addBackground() {
@@ -601,6 +671,8 @@ public class MainActivity extends LayoutGameActivity implements
 				}
 				mScene.attachChild(mSpriteFirstChoice);
 
+				selectionParticleEffect(new fPoint(80, 700));
+
 			} else {
 				// Create selection sprites
 
@@ -617,6 +689,7 @@ public class MainActivity extends LayoutGameActivity implements
 					mScene.detachChild(Constants.SECOND_CHOICE);
 				}
 				mScene.attachChild(mSpriteSecondChoice);
+				selectionParticleEffect(new fPoint(400, 700));
 			}
 
 		}
