@@ -225,9 +225,11 @@ public class MainActivity extends LayoutGameActivity implements
 				pSceneTouchEvent.getY());
 
 		// Check to see if it is within the centre circle, if not select a sign
-		if (Utils.isTouchedInCircle(96, mSelectedSignCoords) && bothChoicesMade) {
-			Log.d("onSceneTouchEvent", "centre touched");
-			showSparklesAndSpin();
+		if (Utils.isTouchedInCircle(96, mSelectedSignCoords)) {
+			if (bothChoicesMade) {
+				Log.d("onSceneTouchEvent", "centre touched");
+				showSparklesAndSpin();
+			}
 		} else {
 
 			mSelectedZodiacId = Utils.returnZodiacSign(mSelectedSignCoords);
@@ -258,7 +260,7 @@ public class MainActivity extends LayoutGameActivity implements
 
 						// Show heart
 						// Attach the zodiac to the Scene
-						if (mScene.getChildByTag(Constants.HEART) == null) {
+						if (mLayer.getChildByTag(Constants.HEART) == null) {
 							mLayer.attachChild(mSpriteHeart);
 
 							// Animate it
