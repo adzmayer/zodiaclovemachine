@@ -34,6 +34,7 @@ public class ResourceManager {
 	public ITextureRegion scorpio;
 	public ITextureRegion taurus;
 	public ITextureRegion virgo;
+	public ITextureRegion heart;
 	private Camera mCamera;
 
 	public static ResourceManager getInstance() {
@@ -65,6 +66,9 @@ public class ResourceManager {
 
 		cloud = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
 				bitmapTextureAtlas, pContext, "smoke01.png");
+
+		heart = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
+				bitmapTextureAtlas, pContext, "heart.png");
 
 		aquarius = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
 				bitmapTextureAtlas, pContext, "aquarius.png");
@@ -158,6 +162,9 @@ public class ResourceManager {
 		bitmapTextureAtlas.unload();
 
 		bitmapTextureAtlas = (BuildableBitmapTextureAtlas) virgo.getTexture();
+		bitmapTextureAtlas.unload();
+
+		bitmapTextureAtlas = (BuildableBitmapTextureAtlas) heart.getTexture();
 		bitmapTextureAtlas.unload();
 
 		// ... Continue to unload all textures related to the 'Game' scene

@@ -59,10 +59,10 @@ public class MainActivity extends LayoutGameActivity implements
 
 	// Entities
 	private Entity mLayer;
-	private Entity mLayerBackground;
 	private Sprite mSpriteZodiac;
 	private Sprite mSpriteFirstChoice;
 	private Sprite mSpriteSecondChoice;
+	private Sprite mSpriteHeart;
 	private BatchedSpriteParticleSystem mParticleSystemFirstChoice;
 	private BatchedSpriteParticleSystem mParticleSystemSecondChoice;
 	private BatchedSpriteParticleSystem mParticleSystemBackground;
@@ -119,7 +119,7 @@ public class MainActivity extends LayoutGameActivity implements
 		mScene.attachChild(mLayer);
 		mScene.setOnSceneTouchListener(this);
 
-		addSprites();
+		buildSprites();
 		buildStarSigns();
 
 		pOnCreateSceneCallback.onCreateSceneFinished(mScene);
@@ -163,7 +163,7 @@ public class MainActivity extends LayoutGameActivity implements
 	// Sprite methods
 	// ----------------------------------------------------------
 
-	private void addSprites() {
+	private void buildSprites() {
 
 		final float positionX = mCameraWidth * 0.5f;
 		final float positionY = mCameraHeight * 0.5f;
@@ -175,6 +175,14 @@ public class MainActivity extends LayoutGameActivity implements
 
 		mSpriteZodiac.setHeight(mCameraWidth);
 		mSpriteZodiac.setWidth(mCameraWidth);
+
+		mSpriteHeart = new Sprite(positionX, positionY,
+				ResourceManager.getInstance().heart,
+				mEngine.getVertexBufferObjectManager());
+
+		mSpriteHeart.setHeight(160);
+		mSpriteHeart.setWidth(160);
+		mSpriteHeart.setTag(Constants.HEART);
 
 		// Attach the zodiac to the Scene
 		mLayer.attachChild(mSpriteZodiac);
@@ -214,7 +222,7 @@ public class MainActivity extends LayoutGameActivity implements
 				pSceneTouchEvent.getY());
 
 		// Check to see if it is within the centre circle, if not select a sign
-		if (Utils.isTouchedInCircle(96, mSelectedSignCoords)) {
+		if (Utils.isTouchedInCircle(96, mSelectedSignCoords) && bothChoicesMade) {
 			Log.d("onSceneTouchEvent", "centre touched");
 			showSparklesAndSpin();
 		} else {
@@ -232,9 +240,6 @@ public class MainActivity extends LayoutGameActivity implements
 						Log.d("onSceneTouchEvent", "firstChoiceJustAdded");
 
 						if (bothChoicesMade) {
-
-							Log.d("onSceneTouchEvent", "bothChoicesMade");
-
 							/* Remove any particles from scene */
 							if (mParticleSystemSecondChoice != null) {
 								mScene.detachChild(mParticleSystemSecondChoice);
@@ -248,18 +253,19 @@ public class MainActivity extends LayoutGameActivity implements
 								(int) centreSign.y);
 						updateChoice(false);
 
+						// Show heart
+						// Attach the zodiac to the Scene
+						if (mScene.getChildByTag(Constants.HEART) == null) {
+							mLayer.attachChild(mSpriteHeart);
+						}
+
 					} else {
 
-						Log.d("onSceneTouchEvent", "secondChoiceJustAdded");
-
 						if (bothChoicesMade) {
-
-							Log.d("onSceneTouchEvent", "bothChoicesMade");
 
 							/* Remove any particles from scene */
 							if (mParticleSystemFirstChoice != null) {
 								mScene.detachChild(mParticleSystemFirstChoice);
-
 							}
 
 						}
