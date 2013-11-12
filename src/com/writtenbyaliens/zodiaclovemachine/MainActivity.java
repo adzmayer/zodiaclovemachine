@@ -11,8 +11,11 @@ import org.andengine.engine.options.WakeLockOptions;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
 import org.andengine.entity.Entity;
 import org.andengine.entity.IEntity;
+import org.andengine.entity.modifier.DelayModifier;
 import org.andengine.entity.modifier.LoopEntityModifier;
 import org.andengine.entity.modifier.RotationModifier;
+import org.andengine.entity.modifier.ScaleModifier;
+import org.andengine.entity.modifier.SequenceEntityModifier;
 import org.andengine.entity.particle.BatchedSpriteParticleSystem;
 import org.andengine.entity.particle.emitter.CircleOutlineParticleEmitter;
 import org.andengine.entity.particle.initializer.AccelerationParticleInitializer;
@@ -257,6 +260,16 @@ public class MainActivity extends LayoutGameActivity implements
 						// Attach the zodiac to the Scene
 						if (mScene.getChildByTag(Constants.HEART) == null) {
 							mLayer.attachChild(mSpriteHeart);
+
+							// Animate it
+							final LoopEntityModifier scaleInOutModifier = new LoopEntityModifier(
+									new SequenceEntityModifier(
+											new DelayModifier(0.3f),
+											new ScaleModifier(0.3f, 0.8f, 1.0f),
+											new ScaleModifier(0.3f, 1.0f, 0.8f)));
+							mSpriteHeart
+									.registerEntityModifier(scaleInOutModifier);
+
 						}
 
 					} else {
