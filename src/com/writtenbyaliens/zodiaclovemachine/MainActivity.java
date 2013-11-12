@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import org.andengine.engine.Engine;
 import org.andengine.engine.camera.Camera;
+import org.andengine.engine.handler.timer.ITimerCallback;
+import org.andengine.engine.handler.timer.TimerHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.WakeLockOptions;
@@ -17,12 +20,15 @@ import org.andengine.entity.modifier.RotationModifier;
 import org.andengine.entity.modifier.ScaleModifier;
 import org.andengine.entity.modifier.SequenceEntityModifier;
 import org.andengine.entity.particle.BatchedSpriteParticleSystem;
+import org.andengine.entity.particle.SpriteParticleSystem;
 import org.andengine.entity.particle.emitter.CircleOutlineParticleEmitter;
+import org.andengine.entity.particle.emitter.RectangleParticleEmitter;
 import org.andengine.entity.particle.initializer.AccelerationParticleInitializer;
 import org.andengine.entity.particle.initializer.AlphaParticleInitializer;
 import org.andengine.entity.particle.initializer.ColorParticleInitializer;
 import org.andengine.entity.particle.initializer.ExpireParticleInitializer;
-import org.andengine.entity.particle.initializer.GravityParticleInitializer;
+import org.andengine.entity.particle.initializer.VelocityParticleInitializer;
+import org.andengine.entity.particle.modifier.AlphaParticleModifier;
 import org.andengine.entity.particle.modifier.ScaleParticleModifier;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
@@ -30,6 +36,7 @@ import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.sprite.UncoloredSprite;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.texture.region.ITextureRegion;
+import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.LayoutGameActivity;
 
 import android.content.Context;
@@ -39,7 +46,6 @@ import android.util.Log;
 
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.Constants;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.StarSign;
-import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.StopParticleModifier;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
 
 public class MainActivity extends LayoutGameActivity implements
@@ -62,6 +68,8 @@ public class MainActivity extends LayoutGameActivity implements
 
 	// Entities
 	private Entity mLayer;
+	private Entity mLayerText;
+	private Entity mLayerRing;
 	private Sprite mSpriteZodiac;
 	private Sprite mSpriteFirstChoice;
 	private Sprite mSpriteSecondChoice;
@@ -69,7 +77,8 @@ public class MainActivity extends LayoutGameActivity implements
 	private BatchedSpriteParticleSystem mParticleSystemFirstChoice;
 	private BatchedSpriteParticleSystem mParticleSystemSecondChoice;
 	private BatchedSpriteParticleSystem mParticleSystemBackground;
-	private BatchedSpriteParticleSystem mParticleSystemSelection;
+	private BatchedSpriteParticleSystem mParticleSystemClouds;
+	private BatchedSpriteParticleSystem mParticleSystemRing;
 
 	// ----------------------------------------------------------
 	// Andengine lifecycle
@@ -122,10 +131,16 @@ public class MainActivity extends LayoutGameActivity implements
 		mScene.attachChild(mLayer);
 		mScene.setOnSceneTouchListener(this);
 
+		mLayerRing = new Entity();
+		mScene.attachChild(mLayerRing);
+
 		buildSprites();
 		buildStarSigns();
 
 		pOnCreateSceneCallback.onCreateSceneFinished(mScene);
+
+		mLayerText = new Entity();
+		mScene.attachChild(mLayerText);
 
 		// Set up advert here. Access this through runables - see old version in
 		// GIT
@@ -196,20 +211,6 @@ public class MainActivity extends LayoutGameActivity implements
 	// Listeners
 	// --------------------------------------------------------------------------
 
-	RotationModifier rotationModifier = new RotationModifier(0.5f, 0, 360) {
-		@Override
-		protected void onModifierStarted(IEntity pItem) {
-			super.onModifierStarted(pItem);
-			// Your action after starting modifier
-		}
-
-		@Override
-		protected void onModifierFinished(IEntity pItem) {
-			super.onModifierFinished(pItem);
-			// Your action after finishing modifier
-		}
-	};
-
 	@Override
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
 
@@ -229,6 +230,52 @@ public class MainActivity extends LayoutGameActivity implements
 			if (bothChoicesMade) {
 				Log.d("onSceneTouchEvent", "centre touched");
 				showSparklesAndSpin();
+
+				TimerHandler cloudTimerHandler;
+
+				this.getEngine().registerUpdateHandler(
+						cloudTimerHandler = new TimerHandler(2f,
+								new ITimerCallback() {
+									@Override
+									public void onTimePassed(
+											final TimerHandler pTimerHandler) {
+
+										if (mLayer
+												.getChildByTag(Constants.HEART) != null) {
+											mLayer.detachChild(mSpriteHeart);
+										}
+
+										if (mSpriteZodiac != null) {
+											mLayer.detachChild(mSpriteZodiac);
+										}
+
+										mScene.detachChild(mLayerRing);
+
+										if (mParticleSystemSecondChoice != null) {
+											mScene.detachChild(mParticleSystemSecondChoice);
+										}
+
+										if (mParticleSystemFirstChoice != null) {
+											mScene.detachChild(mParticleSystemFirstChoice);
+										}
+
+										if (mParticleSystemBackground != null) {
+											mScene.detachChild(mParticleSystemBackground);
+										}
+
+										if (mSpriteFirstChoice != null) {
+											mScene.detachChild(mSpriteFirstChoice);
+										}
+
+										if (mSpriteSecondChoice != null) {
+											mScene.detachChild(mSpriteSecondChoice);
+										}
+
+										createWhiteClouds();
+
+									}
+								}));
+
 			}
 		} else {
 
@@ -264,11 +311,44 @@ public class MainActivity extends LayoutGameActivity implements
 							mLayer.attachChild(mSpriteHeart);
 
 							// Animate it
+
+							ScaleModifier modifierHeartGrow = new ScaleModifier(
+									0.3f, 0.8f, 1.0f) {
+								@Override
+								protected void onModifierStarted(IEntity pItem) {
+									super.onModifierStarted(pItem);
+
+								}
+
+								@Override
+								protected void onModifierFinished(IEntity pItem) {
+									super.onModifierFinished(pItem);
+									Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+									v.vibrate(25);
+								}
+							};
+
+							ScaleModifier modifierHeartShrink = new ScaleModifier(
+									0.3f, 1.0f, 0.8f) {
+								@Override
+								protected void onModifierStarted(IEntity pItem) {
+									super.onModifierStarted(pItem);
+									// Your action after starting modifier
+								}
+
+								@Override
+								protected void onModifierFinished(IEntity pItem) {
+									super.onModifierFinished(pItem);
+									Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+									v.vibrate(25);
+								}
+							};
+
 							final LoopEntityModifier scaleInOutModifier = new LoopEntityModifier(
 									new SequenceEntityModifier(
 											new DelayModifier(0.3f),
-											new ScaleModifier(0.3f, 0.8f, 1.0f),
-											new ScaleModifier(0.3f, 1.0f, 0.8f)));
+											modifierHeartGrow,
+											modifierHeartShrink));
 							mSpriteHeart
 									.registerEntityModifier(scaleInOutModifier);
 
@@ -410,6 +490,20 @@ public class MainActivity extends LayoutGameActivity implements
 	// Graphics
 	// --------------------------------------------------------------------------
 
+	RotationModifier rotationModifier = new RotationModifier(0.5f, 0, 360) {
+		@Override
+		protected void onModifierStarted(IEntity pItem) {
+			super.onModifierStarted(pItem);
+			// Your action after starting modifier
+		}
+
+		@Override
+		protected void onModifierFinished(IEntity pItem) {
+			super.onModifierFinished(pItem);
+			// Your action after finishing modifier
+		}
+	};
+
 	private void showSparkles(int particleSpawnCenterX, int particleSpawnCenterY) {
 
 		Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -426,9 +520,9 @@ public class MainActivity extends LayoutGameActivity implements
 				particleEmitterRadius);
 
 		/* Define the particle system properties */
-		final float minSpawnRate = 100;
-		final float maxSpawnRate = 150;
-		final int maxParticleCount = 200;
+		final float minSpawnRate = 50;
+		final float maxSpawnRate = 100;
+		final int maxParticleCount = 100;
 
 		/* Create the particle system */
 		mParticleSystemFirstChoice = new BatchedSpriteParticleSystem(
@@ -486,9 +580,9 @@ public class MainActivity extends LayoutGameActivity implements
 				particleEmitterRadius);
 
 		/* Define the particle system properties */
-		final float minSpawnRate = 100;
-		final float maxSpawnRate = 150;
-		final int maxParticleCount = 200;
+		final float minSpawnRate = 50;
+		final float maxSpawnRate = 100;
+		final int maxParticleCount = 100;
 
 		/* Create the particle system */
 		mParticleSystemSecondChoice = new BatchedSpriteParticleSystem(
@@ -529,74 +623,6 @@ public class MainActivity extends LayoutGameActivity implements
 
 	}
 
-	private void selectionParticleEffect(fPoint location) {
-
-		/* Define the radius of the circle for the particle emitter */
-		final float particleEmitterRadius = 40;
-
-		/* Create the particle emitter */
-		CircleOutlineParticleEmitter particleEmitter = new CircleOutlineParticleEmitter(
-				(int) location.x, (int) location.y, particleEmitterRadius);
-
-		/* Define the particle system properties */
-		final float minSpawnRate = 25;
-		final float maxSpawnRate = 25;
-		final int maxParticleCount = 25;
-
-		/* Create the particle system */
-		mParticleSystemSelection = new BatchedSpriteParticleSystem(
-				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
-				ResourceManager.getInstance().sparkle,
-				mEngine.getVertexBufferObjectManager());
-
-		/* Add an acceleration initializer to the particle system */
-		mParticleSystemSelection
-				.addParticleInitializer(new AccelerationParticleInitializer<UncoloredSprite>(
-						-13360f, 13360f, -13360f, 13360f));
-
-		/* Add an expire initializer to the particle system */
-		mParticleSystemSelection
-				.addParticleInitializer(new ExpireParticleInitializer<UncoloredSprite>(
-						2f));
-
-		/* Add a particle modifier to the particle system */
-		mParticleSystemSelection
-				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
-						0f, 2f, 0.1f, 4f));
-
-		mParticleSystemSelection.addParticleModifier(new StopParticleModifier(
-				mParticleSystemSelection, 0.1f));
-
-		/* Add a gravity modifier to the particle system */
-		mParticleSystemSelection
-				.addParticleInitializer(new GravityParticleInitializer<UncoloredSprite>());
-
-		/* Define min/max values for particle colors */
-		final float minRed = 255f;
-		final float maxRed = 255f;
-		final float minGreen = 255f;
-		final float maxGreen = 255f;
-		final float minBlue = 200f;
-		final float maxBlue = 244f;
-
-		ColorParticleInitializer<UncoloredSprite> colorParticleInitializer = new ColorParticleInitializer<UncoloredSprite>(
-				minRed, maxRed, minGreen, maxGreen, minBlue, maxBlue);
-		mParticleSystemSelection
-				.addParticleInitializer(colorParticleInitializer);
-
-		/* Define the alpha values */
-		final float minAlpha = 0.5f;
-		final float maxAlpha = 1;
-
-		AlphaParticleInitializer<UncoloredSprite> alphaParticleInitializer = new AlphaParticleInitializer<UncoloredSprite>(
-				minAlpha, maxAlpha);
-		mParticleSystemSelection
-				.addParticleInitializer(alphaParticleInitializer);
-
-		/* Attach the particle system to the Scene */
-		mScene.attachChild(mParticleSystemSelection);
-	}
-
 	private void addBackground() {
 
 		final int particleSpawnCenterX = (int) (mCameraWidth * 0.5f);
@@ -612,8 +638,8 @@ public class MainActivity extends LayoutGameActivity implements
 
 		/* Define the particle system properties */
 		final float minSpawnRate = 1;
-		final float maxSpawnRate = 20;
-		final int maxParticleCount = 20;
+		final float maxSpawnRate = 15;
+		final int maxParticleCount = 15;
 
 		/* Create the particle system */
 		mParticleSystemBackground = new BatchedSpriteParticleSystem(
@@ -629,7 +655,7 @@ public class MainActivity extends LayoutGameActivity implements
 		/* Add an expire initializer to the particle system */
 		mParticleSystemBackground
 				.addParticleInitializer(new ExpireParticleInitializer<UncoloredSprite>(
-						4));
+						5));
 
 		/* Add a particle modifier to the particle system */
 		mParticleSystemBackground
@@ -692,7 +718,9 @@ public class MainActivity extends LayoutGameActivity implements
 				}
 				mScene.attachChild(mSpriteFirstChoice);
 
-				selectionParticleEffect(new fPoint(80, 700));
+				// selectionParticleEffect(new fPoint(80, 700));
+				createExplosion(mEngine, new VertexBufferObjectManager(),
+						new fPoint(80, 700));
 
 			} else {
 				// Create selection sprites
@@ -710,7 +738,9 @@ public class MainActivity extends LayoutGameActivity implements
 					mScene.detachChild(Constants.SECOND_CHOICE);
 				}
 				mScene.attachChild(mSpriteSecondChoice);
-				selectionParticleEffect(new fPoint(400, 700));
+				// selectionParticleEffect(new fPoint(400, 700));
+				createExplosion(mEngine, new VertexBufferObjectManager(),
+						new fPoint(400, 700));
 			}
 
 		}
@@ -742,32 +772,29 @@ public class MainActivity extends LayoutGameActivity implements
 		final int maxParticleCount = 300;
 
 		/* Create the particle system */
-		BatchedSpriteParticleSystem particleSystem = new BatchedSpriteParticleSystem(
-				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
+		mParticleSystemRing = new BatchedSpriteParticleSystem(particleEmitter,
+				minSpawnRate, maxSpawnRate, maxParticleCount,
 				ResourceManager.getInstance().sparkle,
 				mEngine.getVertexBufferObjectManager());
 
 		/* Add an acceleration initializer to the particle system */
-		particleSystem
+		mParticleSystemRing
 				.addParticleInitializer(new AccelerationParticleInitializer<UncoloredSprite>(
 						25f, -25f, 50f, 100f));
 
 		/* Add an expire initializer to the particle system */
-		particleSystem
+		mParticleSystemRing
 				.addParticleInitializer(new ExpireParticleInitializer<UncoloredSprite>(
 						2f));
 
 		/* Add a particle modifier to the particle system */
-		particleSystem
+		mParticleSystemRing
 				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
 						0f, 3f, 0.2f, 1f));
 
-		/* Add a gravity modifier to the particle system */
-		particleSystem
-				.addParticleInitializer(new GravityParticleInitializer<UncoloredSprite>());
-
 		/* Attach the particle system to the Scene */
-		mScene.attachChild(particleSystem);
+		mParticleSystemRing.setTag(Constants.SPARKLE_RING);
+		mLayerRing.attachChild(mParticleSystemRing);
 
 		// Spin!
 		mSpriteZodiac.registerEntityModifier(new LoopEntityModifier(
@@ -776,8 +803,100 @@ public class MainActivity extends LayoutGameActivity implements
 
 	}
 
+	private void createExplosion(final Engine engine,
+			VertexBufferObjectManager vertexBufferObjectManager, fPoint zodiac) {
+
+		final SpriteParticleSystem particleSystem = new SpriteParticleSystem(
+				new RectangleParticleEmitter(zodiac.x, zodiac.y, 0.5f, 0.5f),
+				100, 200, 50, ResourceManager.getInstance().sparkle,
+				vertexBufferObjectManager);
+
+		particleSystem
+				.addParticleInitializer(new VelocityParticleInitializer<Sprite>(
+						-1000, 1000, -1000, 1000));
+
+		particleSystem
+				.addParticleInitializer(new ColorParticleInitializer<Sprite>(
+						1.0f, 0.0f, 0.0f));
+
+		particleSystem
+				.addParticleInitializer(new ExpireParticleInitializer<Sprite>(
+						1.0f));
+
+		particleSystem.addParticleModifier(new AlphaParticleModifier<Sprite>(
+				0.1f, 1.0f, 0.5f, 0f));
+
+		particleSystem.registerEntityModifier(new DelayModifier(1.0f) {
+
+			@Override
+			protected void onModifierFinished(IEntity pItem) {
+
+				engine.runOnUpdateThread(new Runnable() {
+
+					@Override
+					public void run() {
+
+						mScene.detachChild(particleSystem);
+
+					}
+
+				});
+
+			}
+
+		});
+
+		mScene.attachChild(particleSystem);
+
+	}
+
+	private void createWhiteClouds() {
+		final int particleSpawnCenterX = (int) (mCameraWidth * 0.5f);
+		final int particleSpawnCenterY = (int) (mCameraHeight * 0.5f);
+
+		/* Define the radius of the circle for the particle emitter */
+		final float particleEmitterRadius = 240;
+
+		/* Create the particle emitter */
+		CircleOutlineParticleEmitter particleEmitter = new CircleOutlineParticleEmitter(
+				particleSpawnCenterX, particleSpawnCenterY,
+				particleEmitterRadius);
+
+		/* Define the particle system properties */
+		final float minSpawnRate = 5;
+		final float maxSpawnRate = 10;
+		final int maxParticleCount = 10;
+
+		/* Create the particle system */
+		mParticleSystemClouds = new BatchedSpriteParticleSystem(
+				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
+				ResourceManager.getInstance().cloud,
+				mEngine.getVertexBufferObjectManager());
+
+		/* Add an acceleration initializer to the particle system */
+		mParticleSystemClouds
+				.addParticleInitializer(new AccelerationParticleInitializer<UncoloredSprite>(
+						-10f, 10f, -10f, 10f));
+
+		/* Add an expire initializer to the particle system */
+		mParticleSystemClouds
+				.addParticleInitializer(new ExpireParticleInitializer<UncoloredSprite>(
+						20));
+
+		/* Add a particle modifier to the particle system */
+		mParticleSystemClouds
+				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
+						0f, 1f, 0.2f, 4f));
+
+		/* Attach the particle system to the Scene */
+		mLayerText.attachChild(mParticleSystemClouds);
+
+		mScene.setColor(0.8f, 0.8f, 0.8f);
+
+	}
+
 	// --------------------------------------------------------------------------
-	// Speech
+	// Speech and sound
 	// --------------------------------------------------------------------------
 
 	private void speakOut(String words) {
