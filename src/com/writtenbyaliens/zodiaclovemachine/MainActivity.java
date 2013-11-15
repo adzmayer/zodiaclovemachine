@@ -34,6 +34,7 @@ import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.sprite.UncoloredSprite;
+import org.andengine.entity.text.Text;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
@@ -79,6 +80,14 @@ public class MainActivity extends LayoutGameActivity implements
 	private BatchedSpriteParticleSystem mParticleSystemBackground;
 	private BatchedSpriteParticleSystem mParticleSystemClouds;
 	private BatchedSpriteParticleSystem mParticleSystemRing;
+	private Text mSelectedFirst;
+	private Text mSelectedSecond;
+
+	// Constants
+	private static final int SELECTED_SIGN_1_X = 80;
+	private static final int SELECTED_SIGN_1_Y = 690;
+	private static final int SELECTED_SIGN_2_X = 400;
+	private static final int SELECTED_SIGN_2_Y = 690;
 
 	// ----------------------------------------------------------
 	// Andengine lifecycle
@@ -114,6 +123,7 @@ public class MainActivity extends LayoutGameActivity implements
 
 		// Load the game texture resources
 		ResourceManager.getInstance().loadGameTextures(mEngine, this);
+		ResourceManager.getInstance().loadFont(mEngine);
 		ResourceManager.getInstance().setCamera(mCamera);
 
 		pOnCreateResourcesCallback.onCreateResourcesFinished();
@@ -135,6 +145,7 @@ public class MainActivity extends LayoutGameActivity implements
 		mScene.attachChild(mLayerRing);
 
 		buildSprites();
+		buildText();
 		buildStarSigns();
 
 		pOnCreateSceneCallback.onCreateSceneFinished(mScene);
@@ -207,6 +218,24 @@ public class MainActivity extends LayoutGameActivity implements
 
 	}
 
+	private void buildText() {
+
+		mSelectedFirst = new Text(0, 0, ResourceManager.getInstance().font, "",
+				11, mEngine.getVertexBufferObjectManager()) {
+
+		};
+
+		mSelectedFirst.setTag(Constants.TEXT_SELECTED_FIRST);
+
+		mSelectedSecond = new Text(0, 0, ResourceManager.getInstance().font,
+				"", 11, mEngine.getVertexBufferObjectManager()) {
+
+		};
+
+		mSelectedSecond.setTag(Constants.TEXT_SELECTED_SECOND);
+
+	}
+
 	// --------------------------------------------------------------------------
 	// Listeners
 	// --------------------------------------------------------------------------
@@ -229,9 +258,31 @@ public class MainActivity extends LayoutGameActivity implements
 		if (Utils.isTouchedInCircle(96, mSelectedSignCoords)) {
 			if (bothChoicesMade) {
 				Log.d("onSceneTouchEvent", "centre touched");
+				bothChoicesMade = false;
 				showSparklesAndSpin();
 
+				if (mSpriteHeart != null) {
+					mLayer.detachChild(mSpriteHeart);
+				}
+
 				TimerHandler cloudTimerHandler;
+				TimerHandler removeEntitiesTimerHandler;
+
+				this.getEngine().registerUpdateHandler(
+						removeEntitiesTimerHandler = new TimerHandler(5f,
+								new ITimerCallback() {
+									@Override
+									public void onTimePassed(
+											final TimerHandler pTimerHandler) {
+
+										if (mSpriteZodiac != null) {
+											mLayer.detachChild(mSpriteZodiac);
+										}
+
+										mScene.detachChild(mLayerRing);
+
+									}
+								}));
 
 				this.getEngine().registerUpdateHandler(
 						cloudTimerHandler = new TimerHandler(2f,
@@ -240,27 +291,22 @@ public class MainActivity extends LayoutGameActivity implements
 									public void onTimePassed(
 											final TimerHandler pTimerHandler) {
 
-										if (mLayer
-												.getChildByTag(Constants.HEART) != null) {
-											mLayer.detachChild(mSpriteHeart);
-										}
-
-										if (mSpriteZodiac != null) {
-											mLayer.detachChild(mSpriteZodiac);
-										}
-
-										mScene.detachChild(mLayerRing);
-
-										if (mParticleSystemSecondChoice != null) {
-											mScene.detachChild(mParticleSystemSecondChoice);
-										}
-
-										if (mParticleSystemFirstChoice != null) {
-											mScene.detachChild(mParticleSystemFirstChoice);
-										}
-
 										if (mParticleSystemBackground != null) {
 											mScene.detachChild(mParticleSystemBackground);
+										}
+
+										if (mParticleSystemRing != null) {
+											mScene.detachChild(mParticleSystemRing);
+										}
+
+										if (mSelectedFirst != null) {
+											mLayerText
+													.detachChild(mSelectedFirst);
+										}
+
+										if (mSelectedSecond != null) {
+											mLayerText
+													.detachChild(mSelectedSecond);
 										}
 
 										if (mSpriteFirstChoice != null) {
@@ -271,11 +317,17 @@ public class MainActivity extends LayoutGameActivity implements
 											mScene.detachChild(mSpriteSecondChoice);
 										}
 
-										createWhiteClouds();
+										if (mParticleSystemSecondChoice != null) {
+											mScene.detachChild(mParticleSystemSecondChoice);
+										}
 
+										if (mParticleSystemFirstChoice != null) {
+											mScene.detachChild(mParticleSystemFirstChoice);
+										}
+
+										createWhiteClouds();
 									}
 								}));
-
 			}
 		} else {
 
@@ -705,7 +757,8 @@ public class MainActivity extends LayoutGameActivity implements
 
 			if (isFirstChoice) {
 				// Create selection sprites
-				mSpriteFirstChoice = new Sprite(80, 700, zodiacTexture,
+				mSpriteFirstChoice = new Sprite(SELECTED_SIGN_1_X,
+						SELECTED_SIGN_1_Y, zodiacTexture,
 						mEngine.getVertexBufferObjectManager());
 
 				mSpriteFirstChoice.setTag(Constants.FIRST_CHOICE);
@@ -718,14 +771,18 @@ public class MainActivity extends LayoutGameActivity implements
 				}
 				mScene.attachChild(mSpriteFirstChoice);
 
-				// selectionParticleEffect(new fPoint(80, 700));
 				createExplosion(mEngine, new VertexBufferObjectManager(),
-						new fPoint(80, 700));
+						new fPoint(SELECTED_SIGN_1_X, SELECTED_SIGN_1_Y));
+
+				setText(getStarSignById(mSelectedZodiacId).getName(),
+						new fPoint(SELECTED_SIGN_1_X, 774), mSelectedFirst,
+						Constants.TEXT_SELECTED_FIRST);
 
 			} else {
 				// Create selection sprites
 
-				mSpriteSecondChoice = new Sprite(400, 700, zodiacTexture,
+				mSpriteSecondChoice = new Sprite(SELECTED_SIGN_2_X,
+						SELECTED_SIGN_2_Y, zodiacTexture,
 						mEngine.getVertexBufferObjectManager());
 
 				mSpriteSecondChoice.setTag(Constants.SECOND_CHOICE);
@@ -738,9 +795,13 @@ public class MainActivity extends LayoutGameActivity implements
 					mScene.detachChild(Constants.SECOND_CHOICE);
 				}
 				mScene.attachChild(mSpriteSecondChoice);
-				// selectionParticleEffect(new fPoint(400, 700));
+
 				createExplosion(mEngine, new VertexBufferObjectManager(),
-						new fPoint(400, 700));
+						new fPoint(SELECTED_SIGN_2_X, 700));
+
+				setText(getStarSignById(mSelectedZodiacId).getName(),
+						new fPoint(SELECTED_SIGN_2_X, 774), mSelectedSecond,
+						Constants.TEXT_SELECTED_SECOND);
 			}
 
 		}
@@ -780,7 +841,7 @@ public class MainActivity extends LayoutGameActivity implements
 		/* Add an acceleration initializer to the particle system */
 		mParticleSystemRing
 				.addParticleInitializer(new AccelerationParticleInitializer<UncoloredSprite>(
-						25f, -25f, 50f, 100f));
+						100f, -100f, 100f, -100f));
 
 		/* Add an expire initializer to the particle system */
 		mParticleSystemRing
@@ -790,7 +851,7 @@ public class MainActivity extends LayoutGameActivity implements
 		/* Add a particle modifier to the particle system */
 		mParticleSystemRing
 				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
-						0f, 3f, 0.2f, 1f));
+						0f, 3f, 0.2f, 1.5f));
 
 		/* Attach the particle system to the Scene */
 		mParticleSystemRing.setTag(Constants.SPARKLE_RING);
@@ -851,11 +912,12 @@ public class MainActivity extends LayoutGameActivity implements
 	}
 
 	private void createWhiteClouds() {
+
 		final int particleSpawnCenterX = (int) (mCameraWidth * 0.5f);
 		final int particleSpawnCenterY = (int) (mCameraHeight * 0.5f);
 
 		/* Define the radius of the circle for the particle emitter */
-		final float particleEmitterRadius = 240;
+		final float particleEmitterRadius = 50;
 
 		/* Create the particle emitter */
 		CircleOutlineParticleEmitter particleEmitter = new CircleOutlineParticleEmitter(
@@ -863,35 +925,88 @@ public class MainActivity extends LayoutGameActivity implements
 				particleEmitterRadius);
 
 		/* Define the particle system properties */
-		final float minSpawnRate = 5;
-		final float maxSpawnRate = 10;
-		final int maxParticleCount = 10;
+		final float minSpawnRate = 1;
+		final float maxSpawnRate = 15;
+		final int maxParticleCount = 15;
 
 		/* Create the particle system */
-		mParticleSystemClouds = new BatchedSpriteParticleSystem(
+		mParticleSystemBackground = new BatchedSpriteParticleSystem(
 				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
 				ResourceManager.getInstance().cloud,
 				mEngine.getVertexBufferObjectManager());
 
 		/* Add an acceleration initializer to the particle system */
-		mParticleSystemClouds
+		mParticleSystemBackground
 				.addParticleInitializer(new AccelerationParticleInitializer<UncoloredSprite>(
-						-10f, 10f, -10f, 10f));
+						-360f, 360f, -360f, 360f));
 
 		/* Add an expire initializer to the particle system */
-		mParticleSystemClouds
+		mParticleSystemBackground
 				.addParticleInitializer(new ExpireParticleInitializer<UncoloredSprite>(
-						20));
+						5f));
 
 		/* Add a particle modifier to the particle system */
-		mParticleSystemClouds
+		mParticleSystemBackground
 				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
 						0f, 1f, 0.2f, 4f));
 
-		/* Attach the particle system to the Scene */
-		mLayerText.attachChild(mParticleSystemClouds);
+		/* Define the alpha values */
+		final float minAlpha = 0.7f;
+		final float maxAlpha = 1;
 
-		mScene.setColor(0.8f, 0.8f, 0.8f);
+		AlphaParticleInitializer<UncoloredSprite> alphaParticleInitializer = new AlphaParticleInitializer<UncoloredSprite>(
+				minAlpha, maxAlpha);
+
+		mParticleSystemBackground
+				.addParticleInitializer(alphaParticleInitializer);
+
+		mParticleSystemBackground
+				.registerEntityModifier(new DelayModifier(5.0f) {
+
+					@Override
+					protected void onModifierFinished(IEntity pItem) {
+
+						mEngine.runOnUpdateThread(new Runnable() {
+
+							@Override
+							public void run() {
+
+								mScene.detachChild(mParticleSystemBackground);
+
+							}
+
+						});
+
+					}
+
+				});
+
+		/* Attach the particle system to the Scene */
+		mScene.attachChild(mParticleSystemBackground);
+
+	}
+
+	private void setText(String text, fPoint position, Text textObject,
+			int textType) {
+
+		textObject.setText(text);
+		// textObject.setAutoWrap(AutoWrap.WORDS);
+
+		textObject.setY(position.y);
+
+		if (mLayerText.getChildByTag(textObject.getTag()) == null) {
+			mLayerText.attachChild(textObject);
+
+		}
+
+		Log.d("Mainactivity",
+				"height:"
+						+ mLayerText.getChildByTag(textObject.getTag())
+								.getHeight()
+						+ " width:"
+						+ mLayerText.getChildByTag(textObject.getTag())
+								.getWidth());
+		textObject.setX(position.x);
 
 	}
 
@@ -902,5 +1017,9 @@ public class MainActivity extends LayoutGameActivity implements
 	private void speakOut(String words) {
 		tts.speak(words, TextToSpeech.QUEUE_FLUSH, null);
 	}
+
+	// --------------------------------------------------------------------------
+	// Handler
+	// --------------------------------------------------------------------------
 
 }

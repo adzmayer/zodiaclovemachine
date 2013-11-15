@@ -44,9 +44,12 @@ public class Constants {
 		public static final int TAURUS_Y = 562;
 	}
 
+	// TODO Put these into a class called Entities
 	public static final int FIRST_CHOICE = 1;
 	public static final int SECOND_CHOICE = 2;
 	public static final int HEART = 3;
 	public static final int SPARKLE_RING = 4;
+	public static final int TEXT_SELECTED_FIRST = 5;
+	public static final int TEXT_SELECTED_SECOND = 6;
 
 }

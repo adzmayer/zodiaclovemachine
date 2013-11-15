@@ -2,6 +2,8 @@ package com.writtenbyaliens.zodiaclovemachine;
 
 import org.andengine.engine.Engine;
 import org.andengine.engine.camera.Camera;
+import org.andengine.opengl.font.Font;
+import org.andengine.opengl.font.FontFactory;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
 import org.andengine.opengl.texture.atlas.bitmap.BuildableBitmapTextureAtlas;
@@ -12,6 +14,8 @@ import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.util.debug.Debug;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
 
 public class ResourceManager {
 
@@ -36,6 +40,7 @@ public class ResourceManager {
 	public ITextureRegion virgo;
 	public ITextureRegion heart;
 	private Camera mCamera;
+	public Font font;
 
 	public static ResourceManager getInstance() {
 		if (INSTANCE == null) {
@@ -180,6 +185,23 @@ public class ResourceManager {
 
 	public void setCamera(Camera mCamera) {
 		this.mCamera = mCamera;
+	}
+
+	public void loadFont(Engine pEngine) {
+		font = FontFactory.create(pEngine.getFontManager(),
+				pEngine.getTextureManager(), 256, 256,
+				Typeface.create(Typeface.DEFAULT, Typeface.NORMAL), 32f, true,
+				Color.WHITE);
+		font.load();
+
+		/*
+		 * Prepare the mFont object for the most common characters used. This
+		 * will eliminate the need for the garbage collector to run when using a
+		 * letter/number that's never been used before
+		 */
+		font.prepareLetters("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY@Z,.1234567890"
+				.toCharArray());
+
 	}
 
 }
