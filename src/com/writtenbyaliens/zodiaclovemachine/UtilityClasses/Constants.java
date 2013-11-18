@@ -2,6 +2,8 @@ package com.writtenbyaliens.zodiaclovemachine.UtilityClasses;
 
 public class Constants {
 
+	public static final int AUTOWRAP_WIDTH = 800 - 30 - 30;
+
 	public class ZodiacSigns {
 		public static final int GEMINI = 1;
 		public static final int CANCER = 2;
@@ -52,4 +54,7 @@ public class Constants {
 	public static final int TEXT_SELECTED_FIRST = 5;
 	public static final int TEXT_SELECTED_SECOND = 6;
 
+	public class ZodiacSignMatchResult {
+		public static final String ARIES_SAGITTARIUS = "Chemistry and simpatico build fast between these two Fire signs, and you find a twin soul in each other. You’re both independent explorers, driven by lust, joie de vive and a breathtaking moxie that others mistake for arrogance. That brio and derring-do is the badge of your spiritual kinship—a primal mating call that draws you together. You share a blunt sense of humor, and naturally understand the other’s need for space and autonomy (at least at first). Thrilling conversations traipse expansive terrain: philosophy, art, human nature, science, spirituality, dreams. Together, the impossible feels probable, and your natural confidence soars higher. Caution: the view from your rosy lenses can be a bit myopic. Sagittarius is a gambler and Aries is a charging knight—neither thinks far ahead. You’ll need crash insurance for the times that your grand schemes don’t reach your projections. At moments, you both lapse into overthinking, which can kill the celebratory vibe. Aries also has a greater need to for coddling and personal attention. At times, the Ram may resent competing with Sagittarius’ busy career, social schedule and hobbies—and Sagittarius gets impatient with Aries’ needy spells. When angered, your burning tempers can raze a national forest to ash. Be careful not to unleash a spiteful spark, for that’s all it takes to destroy this treasured landscape.";
+	}
 }

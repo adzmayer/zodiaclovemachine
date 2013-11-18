@@ -39,8 +39,10 @@ public class ResourceManager {
 	public ITextureRegion taurus;
 	public ITextureRegion virgo;
 	public ITextureRegion heart;
+	public ITextureRegion scroll;
 	private Camera mCamera;
 	public Font font;
+	public Font smallFont;
 
 	public static ResourceManager getInstance() {
 		if (INSTANCE == null) {
@@ -61,7 +63,7 @@ public class ResourceManager {
 		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 
 		BuildableBitmapTextureAtlas bitmapTextureAtlas = new BuildableBitmapTextureAtlas(
-				pEngine.getTextureManager(), 1120, 1120);
+				pEngine.getTextureManager(), 1840, 2180);
 
 		zodiacCircle = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
 				bitmapTextureAtlas, pContext, "zodiacAltered4.png");
@@ -110,6 +112,9 @@ public class ResourceManager {
 
 		virgo = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
 				bitmapTextureAtlas, pContext, "virgo.png");
+
+		scroll = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
+				bitmapTextureAtlas, pContext, "scroll.png");
 
 		try {
 			bitmapTextureAtlas
@@ -172,6 +177,9 @@ public class ResourceManager {
 		bitmapTextureAtlas = (BuildableBitmapTextureAtlas) heart.getTexture();
 		bitmapTextureAtlas.unload();
 
+		bitmapTextureAtlas = (BuildableBitmapTextureAtlas) scroll.getTexture();
+		bitmapTextureAtlas.unload();
+
 		// ... Continue to unload all textures related to the 'Game' scene
 
 		// Once all textures have been unloaded, attempt to invoke the Garbage
@@ -201,6 +209,16 @@ public class ResourceManager {
 		 */
 		font.prepareLetters("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY@Z,.1234567890"
 				.toCharArray());
+
+		smallFont = FontFactory.create(pEngine.getFontManager(),
+				pEngine.getTextureManager(), 256, 256,
+				Typeface.create(Typeface.SERIF, Typeface.NORMAL), 16f, true,
+				Color.argb(255, 122, 69, 3));
+		smallFont.load();
+
+		smallFont
+				.prepareLetters("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY@Z,.1234567890"
+						.toCharArray());
 
 	}
 

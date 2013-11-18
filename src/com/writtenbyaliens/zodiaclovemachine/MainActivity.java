@@ -14,6 +14,7 @@ import org.andengine.engine.options.WakeLockOptions;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
 import org.andengine.entity.Entity;
 import org.andengine.entity.IEntity;
+import org.andengine.entity.modifier.AlphaModifier;
 import org.andengine.entity.modifier.DelayModifier;
 import org.andengine.entity.modifier.LoopEntityModifier;
 import org.andengine.entity.modifier.RotationModifier;
@@ -36,6 +37,7 @@ import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.sprite.UncoloredSprite;
 import org.andengine.entity.text.Text;
 import org.andengine.input.touch.TouchEvent;
+import org.andengine.input.touch.detector.ScrollDetector;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.LayoutGameActivity;
@@ -45,12 +47,13 @@ import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
+import com.writtenbyaliens.zodiaclovemachine.Entities.ScrollableEntity;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.Constants;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.StarSign;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
 
 public class MainActivity extends LayoutGameActivity implements
-		IOnSceneTouchListener, TextToSpeech.OnInitListener {
+		TextToSpeech.OnInitListener {
 
 	// Variables
 	final int mCameraWidth = 480;
@@ -66,15 +69,25 @@ public class MainActivity extends LayoutGameActivity implements
 	private boolean firstChoiceJustAdded = false;
 	private boolean bothChoicesMade = false;
 	private ArrayList<StarSign> starSigns;
+	private int mSelected1;
+	private int mSelected2;
+
+	// Scroll variables
+	private static ScrollDetector mScrollDetector;
+	private static boolean manualScrolling;
+	private static boolean creditsFinished;
 
 	// Entities
-	private Entity mLayer;
-	private Entity mLayerText;
-	private Entity mLayerRing;
+	private Entity mLayerBackground;
+	private Entity mLayer; // Zodiac ring, heart,
+	private Entity mLayerText; // Text for selected signs and hints
+	private Entity mLayerScroll; // scroll
+	private Entity mLayerScrollText; // scroll result text
 	private Sprite mSpriteZodiac;
 	private Sprite mSpriteFirstChoice;
 	private Sprite mSpriteSecondChoice;
 	private Sprite mSpriteHeart;
+	private Sprite mSpriteScroll;
 	private BatchedSpriteParticleSystem mParticleSystemFirstChoice;
 	private BatchedSpriteParticleSystem mParticleSystemSecondChoice;
 	private BatchedSpriteParticleSystem mParticleSystemBackground;
@@ -82,6 +95,7 @@ public class MainActivity extends LayoutGameActivity implements
 	private BatchedSpriteParticleSystem mParticleSystemRing;
 	private Text mSelectedFirst;
 	private Text mSelectedSecond;
+	private Text mTextResult;
 
 	// Constants
 	private static final int SELECTED_SIGN_1_X = 80;
@@ -133,25 +147,12 @@ public class MainActivity extends LayoutGameActivity implements
 	@Override
 	public void onCreateScene(OnCreateSceneCallback pOnCreateSceneCallback)
 			throws IOException {
-		mScene = new Scene();
 
-		addBackground();
-
-		mLayer = new Entity();
-		mScene.attachChild(mLayer);
-		mScene.setOnSceneTouchListener(this);
-
-		mLayerRing = new Entity();
-		mScene.attachChild(mLayerRing);
-
-		buildSprites();
-		buildText();
-		buildStarSigns();
+		initVariables();
+		initLayers();
+		initEntities();
 
 		pOnCreateSceneCallback.onCreateSceneFinished(mScene);
-
-		mLayerText = new Entity();
-		mScene.attachChild(mLayerText);
 
 		// Set up advert here. Access this through runables - see old version in
 		// GIT
@@ -189,6 +190,48 @@ public class MainActivity extends LayoutGameActivity implements
 	}
 
 	// ----------------------------------------------------------
+	// Initialisation
+	// ----------------------------------------------------------
+
+	private void initVariables() {
+
+		manualScrolling = false;
+		creditsFinished = false;
+	}
+
+	private void initLayers() {
+		mScene = new Scene();
+
+		// Set background
+		mLayerBackground = new Entity();
+		mScene.attachChild(mLayerBackground);
+		addBackground();
+
+		// Set zodiac
+		mLayer = new Entity();
+		mScene.attachChild(mLayer);
+		mScene.setOnSceneTouchListener(onSceneTouchListener);
+
+		// Set text
+		mLayerText = new Entity();
+		mScene.attachChild(mLayerText);
+
+		// Set result scroll
+		mLayerScroll = new Entity();
+		mScene.attachChild(mLayerScroll);
+
+		mLayerScrollText = new Entity();
+		mScene.attachChild(mLayerScrollText);
+
+	}
+
+	private void initEntities() {
+		buildSprites();
+		buildText();
+		buildStarSigns();
+	}
+
+	// ----------------------------------------------------------
 	// Sprite methods
 	// ----------------------------------------------------------
 
@@ -197,7 +240,7 @@ public class MainActivity extends LayoutGameActivity implements
 		final float positionX = mCameraWidth * 0.5f;
 		final float positionY = mCameraHeight * 0.5f;
 
-		/* Add our marble sprite to the bottom left side of the Scene initially */
+		// Add our zodiac ring sprite to the centre
 		mSpriteZodiac = new Sprite(positionX, positionY,
 				ResourceManager.getInstance().zodiacCircle,
 				mEngine.getVertexBufferObjectManager());
@@ -212,6 +255,13 @@ public class MainActivity extends LayoutGameActivity implements
 		mSpriteHeart.setHeight(160);
 		mSpriteHeart.setWidth(160);
 		mSpriteHeart.setTag(Constants.HEART);
+
+		mSpriteScroll = new Sprite(positionX, positionY,
+				ResourceManager.getInstance().scroll,
+				mEngine.getVertexBufferObjectManager());
+
+		mSpriteScroll.setHeight(mCameraWidth);
+		mSpriteScroll.setWidth(mCameraWidth * 0.75f);
 
 		// Attach the zodiac to the Scene
 		mLayer.attachChild(mSpriteZodiac);
@@ -240,196 +290,203 @@ public class MainActivity extends LayoutGameActivity implements
 	// Listeners
 	// --------------------------------------------------------------------------
 
-	@Override
-	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
+	IOnSceneTouchListener onSceneTouchListener = new IOnSceneTouchListener() {
 
-		fPoint centreSign;
+		@Override
+		public boolean onSceneTouchEvent(Scene pScene,
+				TouchEvent pSceneTouchEvent) {
 
-		Log.d("onSceneTouchEvent",
-				"x:" + pSceneTouchEvent.getX() + "  y:"
-						+ pSceneTouchEvent.getY() + " Action:"
-						+ pSceneTouchEvent.getAction());
+			fPoint centreSign;
 
-		// Get point touched
-		mSelectedSignCoords = new fPoint(pSceneTouchEvent.getX(),
-				pSceneTouchEvent.getY());
+			Log.d("onSceneTouchEvent",
+					"x:" + pSceneTouchEvent.getX() + "  y:"
+							+ pSceneTouchEvent.getY() + " Action:"
+							+ pSceneTouchEvent.getAction());
 
-		// Check to see if it is within the centre circle, if not select a sign
-		if (Utils.isTouchedInCircle(96, mSelectedSignCoords)) {
-			if (bothChoicesMade) {
-				Log.d("onSceneTouchEvent", "centre touched");
-				bothChoicesMade = false;
-				showSparklesAndSpin();
+			// Get point touched
+			mSelectedSignCoords = new fPoint(pSceneTouchEvent.getX(),
+					pSceneTouchEvent.getY());
 
-				if (mSpriteHeart != null) {
-					mLayer.detachChild(mSpriteHeart);
+			// Check to see if it is within the centre circle, if not select a
+			// sign
+			if (Utils.isTouchedInCircle(96, mSelectedSignCoords)) {
+				if (bothChoicesMade) {
+					Log.d("onSceneTouchEvent", "centre touched");
+					bothChoicesMade = false;
+					showSparklesAndSpin();
+
+					if (mSpriteHeart != null) {
+						mLayer.detachChild(mSpriteHeart);
+					}
+
+					TimerHandler cloudTimerHandler;
+					TimerHandler removeEntitiesTimerHandler;
+
+					mEngine.registerUpdateHandler(removeEntitiesTimerHandler = new TimerHandler(
+							5f, new ITimerCallback() {
+								@Override
+								public void onTimePassed(
+										final TimerHandler pTimerHandler) {
+
+									if (mSpriteZodiac != null) {
+										mLayer.detachChild(mSpriteZodiac);
+									}
+
+									if (mParticleSystemRing != null) {
+										mLayer.detachChild(mParticleSystemRing);
+									}
+
+									showScroll();
+
+								}
+							}));
+
+					mEngine.registerUpdateHandler(cloudTimerHandler = new TimerHandler(
+							2f, new ITimerCallback() {
+								@Override
+								public void onTimePassed(
+										final TimerHandler pTimerHandler) {
+
+									if (mParticleSystemBackground != null) {
+										mLayerBackground
+												.detachChild(mParticleSystemBackground);
+									}
+
+									if (mSelectedFirst != null) {
+										mLayerText.detachChild(mSelectedFirst);
+									}
+
+									if (mSelectedSecond != null) {
+										mLayerText.detachChild(mSelectedSecond);
+									}
+
+									if (mSpriteFirstChoice != null) {
+										mScene.detachChild(mSpriteFirstChoice);
+									}
+
+									if (mSpriteSecondChoice != null) {
+										mScene.detachChild(mSpriteSecondChoice);
+									}
+
+									if (mParticleSystemSecondChoice != null) {
+										mLayer.detachChild(mParticleSystemSecondChoice);
+									}
+
+									if (mParticleSystemFirstChoice != null) {
+										mLayer.detachChild(mParticleSystemFirstChoice);
+									}
+
+									createWhiteClouds();
+								}
+							}));
 				}
+			} else {
 
-				TimerHandler cloudTimerHandler;
-				TimerHandler removeEntitiesTimerHandler;
+				mSelectedZodiacId = Utils.returnZodiacSign(mSelectedSignCoords);
 
-				this.getEngine().registerUpdateHandler(
-						removeEntitiesTimerHandler = new TimerHandler(5f,
-								new ITimerCallback() {
-									@Override
-									public void onTimePassed(
-											final TimerHandler pTimerHandler) {
+				if (pSceneTouchEvent.getAction() == 0 && mSelectedZodiacId != 0) {
 
-										if (mSpriteZodiac != null) {
-											mLayer.detachChild(mSpriteZodiac);
-										}
+					if (mSpinning == false) {
+						centreSign = Utils
+								.getStarSignCentrePoint(mSelectedZodiacId);
 
-										mScene.detachChild(mLayerRing);
+						if (firstChoiceJustAdded) {
 
-									}
-								}));
+							Log.d("onSceneTouchEvent", "firstChoiceJustAdded");
 
-				this.getEngine().registerUpdateHandler(
-						cloudTimerHandler = new TimerHandler(2f,
-								new ITimerCallback() {
-									@Override
-									public void onTimePassed(
-											final TimerHandler pTimerHandler) {
+							if (bothChoicesMade) {
+								/* Remove any particles from scene */
+								if (mParticleSystemSecondChoice != null) {
+									mLayer.detachChild(mParticleSystemSecondChoice);
+								}
 
-										if (mParticleSystemBackground != null) {
-											mScene.detachChild(mParticleSystemBackground);
-										}
-
-										if (mParticleSystemRing != null) {
-											mScene.detachChild(mParticleSystemRing);
-										}
-
-										if (mSelectedFirst != null) {
-											mLayerText
-													.detachChild(mSelectedFirst);
-										}
-
-										if (mSelectedSecond != null) {
-											mLayerText
-													.detachChild(mSelectedSecond);
-										}
-
-										if (mSpriteFirstChoice != null) {
-											mScene.detachChild(mSpriteFirstChoice);
-										}
-
-										if (mSpriteSecondChoice != null) {
-											mScene.detachChild(mSpriteSecondChoice);
-										}
-
-										if (mParticleSystemSecondChoice != null) {
-											mScene.detachChild(mParticleSystemSecondChoice);
-										}
-
-										if (mParticleSystemFirstChoice != null) {
-											mScene.detachChild(mParticleSystemFirstChoice);
-										}
-
-										createWhiteClouds();
-									}
-								}));
-			}
-		} else {
-
-			mSelectedZodiacId = Utils.returnZodiacSign(mSelectedSignCoords);
-
-			if (pSceneTouchEvent.getAction() == 0 && mSelectedZodiacId != 0) {
-
-				if (mSpinning == false) {
-					centreSign = Utils
-							.getStarSignCentrePoint(mSelectedZodiacId);
-
-					if (firstChoiceJustAdded) {
-
-						Log.d("onSceneTouchEvent", "firstChoiceJustAdded");
-
-						if (bothChoicesMade) {
-							/* Remove any particles from scene */
-							if (mParticleSystemSecondChoice != null) {
-								mScene.detachChild(mParticleSystemSecondChoice);
 							}
 
-						}
+							firstChoiceJustAdded = false;
+							bothChoicesMade = true;
+							showSparklesSecondChoice((int) centreSign.x,
+									(int) centreSign.y);
+							updateChoice(false);
 
-						firstChoiceJustAdded = false;
-						bothChoicesMade = true;
-						showSparklesSecondChoice((int) centreSign.x,
-								(int) centreSign.y);
-						updateChoice(false);
+							// Show heart
+							// Attach the zodiac to the Scene
+							if (mLayer.getChildByTag(Constants.HEART) == null) {
+								mLayer.attachChild(mSpriteHeart);
 
-						// Show heart
-						// Attach the zodiac to the Scene
-						if (mLayer.getChildByTag(Constants.HEART) == null) {
-							mLayer.attachChild(mSpriteHeart);
+								// Animate it
 
-							// Animate it
+								ScaleModifier modifierHeartGrow = new ScaleModifier(
+										0.3f, 0.8f, 1.0f) {
+									@Override
+									protected void onModifierStarted(
+											IEntity pItem) {
+										super.onModifierStarted(pItem);
 
-							ScaleModifier modifierHeartGrow = new ScaleModifier(
-									0.3f, 0.8f, 1.0f) {
-								@Override
-								protected void onModifierStarted(IEntity pItem) {
-									super.onModifierStarted(pItem);
+									}
 
-								}
+									@Override
+									protected void onModifierFinished(
+											IEntity pItem) {
+										super.onModifierFinished(pItem);
+										Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+										v.vibrate(25);
+									}
+								};
 
-								@Override
-								protected void onModifierFinished(IEntity pItem) {
-									super.onModifierFinished(pItem);
-									Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-									v.vibrate(25);
-								}
-							};
+								ScaleModifier modifierHeartShrink = new ScaleModifier(
+										0.3f, 1.0f, 0.8f) {
+									@Override
+									protected void onModifierStarted(
+											IEntity pItem) {
+										super.onModifierStarted(pItem);
+										// Your action after starting modifier
+									}
 
-							ScaleModifier modifierHeartShrink = new ScaleModifier(
-									0.3f, 1.0f, 0.8f) {
-								@Override
-								protected void onModifierStarted(IEntity pItem) {
-									super.onModifierStarted(pItem);
-									// Your action after starting modifier
-								}
+									@Override
+									protected void onModifierFinished(
+											IEntity pItem) {
+										super.onModifierFinished(pItem);
+										Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+										v.vibrate(25);
+									}
+								};
 
-								@Override
-								protected void onModifierFinished(IEntity pItem) {
-									super.onModifierFinished(pItem);
-									Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-									v.vibrate(25);
-								}
-							};
+								final LoopEntityModifier scaleInOutModifier = new LoopEntityModifier(
+										new SequenceEntityModifier(
+												new DelayModifier(0.3f),
+												modifierHeartGrow,
+												modifierHeartShrink));
+								mSpriteHeart
+										.registerEntityModifier(scaleInOutModifier);
 
-							final LoopEntityModifier scaleInOutModifier = new LoopEntityModifier(
-									new SequenceEntityModifier(
-											new DelayModifier(0.3f),
-											modifierHeartGrow,
-											modifierHeartShrink));
-							mSpriteHeart
-									.registerEntityModifier(scaleInOutModifier);
-
-						}
-
-					} else {
-
-						if (bothChoicesMade) {
-
-							/* Remove any particles from scene */
-							if (mParticleSystemFirstChoice != null) {
-								mScene.detachChild(mParticleSystemFirstChoice);
 							}
 
+						} else {
+
+							if (bothChoicesMade) {
+
+								/* Remove any particles from scene */
+								if (mParticleSystemFirstChoice != null) {
+									mLayer.detachChild(mParticleSystemFirstChoice);
+								}
+
+							}
+
+							firstChoiceJustAdded = true;
+							showSparkles((int) centreSign.x, (int) centreSign.y);
+							updateChoice(true);
 						}
 
-						firstChoiceJustAdded = true;
-						showSparkles((int) centreSign.x, (int) centreSign.y);
-						updateChoice(true);
 					}
 
 				}
 
 			}
 
+			return true;
 		}
 
-		return true;
-	}
+	};
 
 	@Override
 	public void onInit(int status) {
@@ -611,7 +668,7 @@ public class MainActivity extends LayoutGameActivity implements
 				.addParticleInitializer(colorParticleInitializer);
 
 		/* Attach the particle system to the Scene */
-		mScene.attachChild(mParticleSystemFirstChoice);
+		mLayer.attachChild(mParticleSystemFirstChoice);
 
 	}
 
@@ -671,7 +728,7 @@ public class MainActivity extends LayoutGameActivity implements
 				.addParticleInitializer(colorParticleInitializer);
 
 		/* Attach the particle system to the Scene */
-		mScene.attachChild(mParticleSystemSecondChoice);
+		mLayer.attachChild(mParticleSystemSecondChoice);
 
 	}
 
@@ -738,7 +795,7 @@ public class MainActivity extends LayoutGameActivity implements
 				.addParticleInitializer(colorParticleInitializer);
 
 		/* Attach the particle system to the Scene */
-		mScene.attachChild(mParticleSystemBackground);
+		mLayerBackground.attachChild(mParticleSystemBackground);
 
 	}
 
@@ -756,6 +813,8 @@ public class MainActivity extends LayoutGameActivity implements
 			// Assign the correct texture to the sprite
 
 			if (isFirstChoice) {
+				mSelected1 = mSelectedZodiacId;
+
 				// Create selection sprites
 				mSpriteFirstChoice = new Sprite(SELECTED_SIGN_1_X,
 						SELECTED_SIGN_1_Y, zodiacTexture,
@@ -779,8 +838,9 @@ public class MainActivity extends LayoutGameActivity implements
 						Constants.TEXT_SELECTED_FIRST);
 
 			} else {
-				// Create selection sprites
+				mSelected2 = mSelectedZodiacId;
 
+				// Create selection sprites
 				mSpriteSecondChoice = new Sprite(SELECTED_SIGN_2_X,
 						SELECTED_SIGN_2_Y, zodiacTexture,
 						mEngine.getVertexBufferObjectManager());
@@ -809,11 +869,6 @@ public class MainActivity extends LayoutGameActivity implements
 	}
 
 	private void showSparklesAndSpin() {
-
-		if (mParticleSystemFirstChoice != null) {
-			mScene.detachChild(mParticleSystemFirstChoice);
-
-		}
 
 		/* Define the center point of the particle system spawn location */
 		final int particleSpawnCenterX = (int) (mCameraWidth * 0.5f);
@@ -855,7 +910,7 @@ public class MainActivity extends LayoutGameActivity implements
 
 		/* Attach the particle system to the Scene */
 		mParticleSystemRing.setTag(Constants.SPARKLE_RING);
-		mLayerRing.attachChild(mParticleSystemRing);
+		mLayer.attachChild(mParticleSystemRing);
 
 		// Spin!
 		mSpriteZodiac.registerEntityModifier(new LoopEntityModifier(
@@ -930,23 +985,23 @@ public class MainActivity extends LayoutGameActivity implements
 		final int maxParticleCount = 15;
 
 		/* Create the particle system */
-		mParticleSystemBackground = new BatchedSpriteParticleSystem(
+		mParticleSystemClouds = new BatchedSpriteParticleSystem(
 				particleEmitter, minSpawnRate, maxSpawnRate, maxParticleCount,
 				ResourceManager.getInstance().cloud,
 				mEngine.getVertexBufferObjectManager());
 
 		/* Add an acceleration initializer to the particle system */
-		mParticleSystemBackground
+		mParticleSystemClouds
 				.addParticleInitializer(new AccelerationParticleInitializer<UncoloredSprite>(
 						-360f, 360f, -360f, 360f));
 
 		/* Add an expire initializer to the particle system */
-		mParticleSystemBackground
+		mParticleSystemClouds
 				.addParticleInitializer(new ExpireParticleInitializer<UncoloredSprite>(
 						5f));
 
 		/* Add a particle modifier to the particle system */
-		mParticleSystemBackground
+		mParticleSystemClouds
 				.addParticleModifier(new ScaleParticleModifier<UncoloredSprite>(
 						0f, 1f, 0.2f, 4f));
 
@@ -957,32 +1012,30 @@ public class MainActivity extends LayoutGameActivity implements
 		AlphaParticleInitializer<UncoloredSprite> alphaParticleInitializer = new AlphaParticleInitializer<UncoloredSprite>(
 				minAlpha, maxAlpha);
 
-		mParticleSystemBackground
-				.addParticleInitializer(alphaParticleInitializer);
+		mParticleSystemClouds.addParticleInitializer(alphaParticleInitializer);
 
-		mParticleSystemBackground
-				.registerEntityModifier(new DelayModifier(5.0f) {
+		mParticleSystemClouds.registerEntityModifier(new DelayModifier(5.0f) {
+
+			@Override
+			protected void onModifierFinished(IEntity pItem) {
+
+				mEngine.runOnUpdateThread(new Runnable() {
 
 					@Override
-					protected void onModifierFinished(IEntity pItem) {
+					public void run() {
 
-						mEngine.runOnUpdateThread(new Runnable() {
-
-							@Override
-							public void run() {
-
-								mScene.detachChild(mParticleSystemBackground);
-
-							}
-
-						});
+						mScene.detachChild(mParticleSystemClouds);
 
 					}
 
 				});
 
+			}
+
+		});
+
 		/* Attach the particle system to the Scene */
-		mScene.attachChild(mParticleSystemBackground);
+		mScene.attachChild(mParticleSystemClouds);
 
 	}
 
@@ -1007,6 +1060,43 @@ public class MainActivity extends LayoutGameActivity implements
 						+ mLayerText.getChildByTag(textObject.getTag())
 								.getWidth());
 		textObject.setX(position.x);
+
+	}
+
+	private void showScroll() {
+
+		addBackground();
+
+		Log.d("showScroll",
+				"text is:" + Utils.getLoveResult(mSelected1, mSelected2));
+
+		// Show scroll background
+		mSpriteScroll.registerEntityModifier(new ScaleModifier(3f, 0.1f, 1.3f,
+				0.1f, 1.3f));
+
+		mLayerBackground.attachChild(mSpriteScroll);
+
+		// Show text
+		mTextResult = new Text(200, 400,
+				ResourceManager.getInstance().smallFont,
+				Utils.getNormalizedText(
+						ResourceManager.getInstance().smallFont,
+						Utils.getLoveResult(mSelected1, mSelected2), 280f),
+				mEngine.getVertexBufferObjectManager());
+
+		mTextResult.registerEntityModifier(new AlphaModifier(10, 0f, 1f));
+
+		mTextResult.registerEntityModifier(new ScaleModifier(3f, 0.1f, 1f,
+				0.1f, 1f));
+
+		Entity test = new Entity();
+		test.attachChild(mTextResult);
+
+		ScrollableEntity scrollableArea = new ScrollableEntity(
+				mCameraWidth * 0.5f, mCameraHeight * 0.5f, 368, 500, test);
+
+		mLayerBackground.attachChild(scrollableArea);
+		mScene.registerTouchArea(scrollableArea);
 
 	}
 

@@ -1,5 +1,8 @@
 package com.writtenbyaliens.zodiaclovemachine;
 
+import org.andengine.opengl.font.Font;
+import org.andengine.opengl.font.FontUtils;
+
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.Constants;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
 
@@ -205,6 +208,141 @@ public final class Utils {
 
 		return centre;
 
+	}
+
+	public static String getLoveResult(int selectedZodiacId1,
+			int selectedZodiacId2) {
+
+		switch (selectedZodiacId1) {
+		case Constants.ZodiacSigns.GEMINI:
+
+		case Constants.ZodiacSigns.CANCER:
+
+		case Constants.ZodiacSigns.LEO:
+
+		case Constants.ZodiacSigns.VIRGO:
+
+		case Constants.ZodiacSigns.LIBRA:
+
+		case Constants.ZodiacSigns.SCORPIO:
+
+		case Constants.ZodiacSigns.SAGITTARIUS:
+			switch (selectedZodiacId2) {
+			case Constants.ZodiacSigns.GEMINI:
+
+				return ("");
+			case Constants.ZodiacSigns.CANCER:
+
+				return ("");
+			case Constants.ZodiacSigns.LEO:
+
+				return ("");
+			case Constants.ZodiacSigns.VIRGO:
+
+				return ("");
+			case Constants.ZodiacSigns.LIBRA:
+
+				return ("");
+			case Constants.ZodiacSigns.SCORPIO:
+
+				return ("");
+			case Constants.ZodiacSigns.SAGITTARIUS:
+
+				return (Constants.ZodiacSignMatchResult.ARIES_SAGITTARIUS);
+			case Constants.ZodiacSigns.CAPRICORN:
+
+				return ("");
+			case Constants.ZodiacSigns.AQUARIUS:
+
+				return ("");
+			case Constants.ZodiacSigns.PISCES:
+
+				return ("");
+			case Constants.ZodiacSigns.ARIES:
+
+				return ("");
+			case Constants.ZodiacSigns.TAURUS:
+
+				return ("");
+			}
+
+		case Constants.ZodiacSigns.CAPRICORN:
+
+		case Constants.ZodiacSigns.AQUARIUS:
+
+		case Constants.ZodiacSigns.PISCES:
+
+		case Constants.ZodiacSigns.ARIES:
+			switch (selectedZodiacId2) {
+			case Constants.ZodiacSigns.GEMINI:
+
+				return ("");
+			case Constants.ZodiacSigns.CANCER:
+
+				return ("");
+			case Constants.ZodiacSigns.LEO:
+
+				return ("");
+			case Constants.ZodiacSigns.VIRGO:
+
+				return ("");
+			case Constants.ZodiacSigns.LIBRA:
+
+				return ("");
+			case Constants.ZodiacSigns.SCORPIO:
+
+				return ("");
+			case Constants.ZodiacSigns.SAGITTARIUS:
+
+				return (Constants.ZodiacSignMatchResult.ARIES_SAGITTARIUS);
+			case Constants.ZodiacSigns.CAPRICORN:
+
+				return ("");
+			case Constants.ZodiacSigns.AQUARIUS:
+
+				return ("");
+			case Constants.ZodiacSigns.PISCES:
+
+				return ("");
+			case Constants.ZodiacSigns.ARIES:
+
+				return ("");
+			case Constants.ZodiacSigns.TAURUS:
+
+				return ("");
+			}
+
+		case Constants.ZodiacSigns.TAURUS:
+
+		}
+
+		return "";
+	}
+
+	public static String getNormalizedText(Font font, String ptext,
+			float textWidth) {
+		// no need to normalize, its just one word, so return
+		if (!ptext.contains(" "))
+			return ptext;
+		String[] words = ptext.split(" ");
+		StringBuilder normalizedText = new StringBuilder();
+		StringBuilder line = new StringBuilder();
+
+		for (int i = 0; i < words.length; i++) {
+			if (FontUtils.measureText(font, (line + words[i])) > (textWidth)) {
+				normalizedText.append(line).append('\n');
+				line = new StringBuilder();
+			}
+
+			if (line.length() == 0)
+				line.append(words[i]);
+			else
+				line.append(' ').append(words[i]);
+
+			if (i == words.length - 1)
+				normalizedText.append(line);
+		}
+		return normalizedText.toString();
 	}
 
 }
