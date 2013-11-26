@@ -17,6 +17,7 @@ public class ScrollableEntity extends ClipEntity implements
 
 	private SurfaceScrollDetector scrollDetector;
 	private IEntity contentEntity;
+	private float myBottom;
 
 	public ScrollableEntity(float x, float y, int width, int height,
 			final IEntity content) {
@@ -39,6 +40,8 @@ public class ScrollableEntity extends ClipEntity implements
 			contentEntity.setPosition(contentEntity.getX(), -368);
 		}
 
+		myBottom = contentEntity.getFirstChild().getHeight() / 2 - 368;
+
 	}
 
 	@Override
@@ -53,13 +56,24 @@ public class ScrollableEntity extends ClipEntity implements
 		if (contentEntity != null) {
 
 			float y = contentEntity.getY() - distanceY;
+
 			Log.d("onScroll", "distancey:" + y);
 			Log.d("onScroll", "contentEntity:"
 					+ contentEntity.getFirstChild().getHeight());
-			if (y >= -368
-					& y < (contentEntity.getFirstChild().getHeight() / 2) - 368) {
+			if (y >= -368 & y < myBottom) {
+				contentEntity.setPosition(contentEntity.getX(), y);
+			} else {
+				if (y < -368) {
+					y = -368;
+				}
+
+				if (y > myBottom) {
+					y = myBottom;
+				}
+
 				contentEntity.setPosition(contentEntity.getX(), y);
 			}
+
 		}
 	}
 
