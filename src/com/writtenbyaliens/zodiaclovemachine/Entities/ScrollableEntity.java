@@ -55,7 +55,7 @@ public class ScrollableEntity extends ClipEntity implements
 
 		if (contentEntity != null) {
 
-			float y = contentEntity.getY() - distanceY;
+			float y = contentEntity.getY() - (distanceY * 0.45f);
 
 			Log.d("onScroll", "distancey:" + y);
 			Log.d("onScroll", "contentEntity:"

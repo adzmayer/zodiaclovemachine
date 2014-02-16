@@ -1,5 +1,7 @@
 package com.writtenbyaliens.zodiaclovemachine.UtilityClasses;
 
+import java.util.List;
+
 import org.andengine.opengl.texture.region.ITextureRegion;
 
 public class StarSign {
@@ -49,6 +51,18 @@ public class StarSign {
 
 	public void setZodiacTexture(ITextureRegion zodiacTexture) {
 		this.zodiacTexture = zodiacTexture;
+	}
+
+	public List<StarSign> getCompatibleSigns() {
+		// TODO Check constants file for compatible signs, build an array and
+		// return them
+
+		// Get ids
+
+		// Build array
+
+		return null;
+
 	}
 
 }

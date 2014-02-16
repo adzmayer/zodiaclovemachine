@@ -40,6 +40,9 @@ public class ResourceManager {
 	public ITextureRegion virgo;
 	public ITextureRegion heart;
 	public ITextureRegion scroll;
+	public ITextureRegion heartFull;
+	public ITextureRegion heartEmpty;
+
 	private Camera mCamera;
 	public Font font;
 	public Font smallFont;
@@ -116,6 +119,12 @@ public class ResourceManager {
 		scroll = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
 				bitmapTextureAtlas, pContext, "scroll.png");
 
+		heartFull = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
+				bitmapTextureAtlas, pContext, "heart_full.png");
+
+		heartEmpty = BitmapTextureAtlasTextureRegionFactory.createFromAsset(
+				bitmapTextureAtlas, pContext, "heart_empty.png");
+
 		try {
 			bitmapTextureAtlas
 					.build(new BlackPawnTextureAtlasBuilder<IBitmapTextureAtlasSource, BitmapTextureAtlas>(
@@ -178,6 +187,14 @@ public class ResourceManager {
 		bitmapTextureAtlas.unload();
 
 		bitmapTextureAtlas = (BuildableBitmapTextureAtlas) scroll.getTexture();
+		bitmapTextureAtlas.unload();
+
+		bitmapTextureAtlas = (BuildableBitmapTextureAtlas) heartFull
+				.getTexture();
+		bitmapTextureAtlas.unload();
+
+		bitmapTextureAtlas = (BuildableBitmapTextureAtlas) heartEmpty
+				.getTexture();
 		bitmapTextureAtlas.unload();
 
 		// ... Continue to unload all textures related to the 'Game' scene

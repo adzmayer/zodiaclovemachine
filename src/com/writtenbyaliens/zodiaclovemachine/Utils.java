@@ -1,9 +1,19 @@
 package com.writtenbyaliens.zodiaclovemachine;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 import org.andengine.opengl.font.Font;
 import org.andengine.opengl.font.FontUtils;
 
+import android.content.Context;
+import android.util.Log;
+
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.Constants;
+import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.StarMatch;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
 
 public final class Utils {
@@ -210,113 +220,79 @@ public final class Utils {
 
 	}
 
-	public static String getLoveResult(int selectedZodiacId1,
+	/**
+	 * @param selectedZodiacId1
+	 * @param selectedZodiacId2
+	 * @return
+	 * 
+	 *         Creates the love match result text
+	 * 
+	 */
+	public static String getMatchResult(int selectedZodiacId1,
 			int selectedZodiacId2) {
 
-		switch (selectedZodiacId1) {
-		case Constants.ZodiacSigns.GEMINI:
+		int starSignMatched = 0;
+		List<Integer> pickedParagraphs;
+		String finalDoc = "";
+		String lineSep;
 
-		case Constants.ZodiacSigns.CANCER:
+		// Loop through our matches and search for a record that has zodiac 1 or
+		// zodiac 2 for the first entry and then the other for the second entry
+		for (StarMatch starMatch : GameManager.getInstance().getStarMatches()) {
 
-		case Constants.ZodiacSigns.LEO:
-
-		case Constants.ZodiacSigns.VIRGO:
-
-		case Constants.ZodiacSigns.LIBRA:
-
-		case Constants.ZodiacSigns.SCORPIO:
-
-		case Constants.ZodiacSigns.SAGITTARIUS:
-			switch (selectedZodiacId2) {
-			case Constants.ZodiacSigns.GEMINI:
-
-				return ("");
-			case Constants.ZodiacSigns.CANCER:
-
-				return ("");
-			case Constants.ZodiacSigns.LEO:
-
-				return ("");
-			case Constants.ZodiacSigns.VIRGO:
-
-				return ("");
-			case Constants.ZodiacSigns.LIBRA:
-
-				return ("");
-			case Constants.ZodiacSigns.SCORPIO:
-
-				return ("");
-			case Constants.ZodiacSigns.SAGITTARIUS:
-
-				return (Constants.ZodiacSignMatchResult.ARIES_SAGITTARIUS);
-			case Constants.ZodiacSigns.CAPRICORN:
-
-				return ("");
-			case Constants.ZodiacSigns.AQUARIUS:
-
-				return ("");
-			case Constants.ZodiacSigns.PISCES:
-
-				return ("");
-			case Constants.ZodiacSigns.ARIES:
-
-				return ("");
-			case Constants.ZodiacSigns.TAURUS:
-
-				return ("");
+			// Find out which
+			if (starMatch.getStarSign1() == selectedZodiacId1) {
+				starSignMatched = 1;
 			}
 
-		case Constants.ZodiacSigns.CAPRICORN:
-
-		case Constants.ZodiacSigns.AQUARIUS:
-
-		case Constants.ZodiacSigns.PISCES:
-
-		case Constants.ZodiacSigns.ARIES:
-			switch (selectedZodiacId2) {
-			case Constants.ZodiacSigns.GEMINI:
-
-				return ("");
-			case Constants.ZodiacSigns.CANCER:
-
-				return ("");
-			case Constants.ZodiacSigns.LEO:
-
-				return ("");
-			case Constants.ZodiacSigns.VIRGO:
-
-				return ("");
-			case Constants.ZodiacSigns.LIBRA:
-
-				return ("");
-			case Constants.ZodiacSigns.SCORPIO:
-
-				return ("");
-			case Constants.ZodiacSigns.SAGITTARIUS:
-
-				return (Constants.ZodiacSignMatchResult.ARIES_SAGITTARIUS);
-			case Constants.ZodiacSigns.CAPRICORN:
-
-				return ("");
-			case Constants.ZodiacSigns.AQUARIUS:
-
-				return ("");
-			case Constants.ZodiacSigns.PISCES:
-
-				return ("");
-			case Constants.ZodiacSigns.ARIES:
-
-				return ("");
-			case Constants.ZodiacSigns.TAURUS:
-
-				return ("");
+			if (starMatch.getStarSign2() == selectedZodiacId1) {
+				starSignMatched = 2;
 			}
 
-		case Constants.ZodiacSigns.TAURUS:
+			// Return a random 3 of its paragraphs as a concatentated
+			// string.
+			if ((starSignMatched == 1 && starMatch.getStarSign2() == selectedZodiacId2)
+					|| (starSignMatched == 2 && starMatch.getStarSign1() == selectedZodiacId2)) {
+
+				Random r = new Random();
+				int randomParagraphIndex;
+				pickedParagraphs = new ArrayList<Integer>();
+
+				if (starMatch.getParagraphsList().size() > 2) {
+					while (pickedParagraphs.size() < 3) {
+
+						randomParagraphIndex = r.nextInt(starMatch
+								.getParagraphsList().size() - 1) + 1;
+
+						if (!pickedParagraphs.contains(randomParagraphIndex)) {
+							pickedParagraphs.add(Integer
+									.valueOf(randomParagraphIndex));
+						}
+					}
+				} else {
+					for (int j = 0; j < starMatch.getParagraphsList().size(); j++) {
+						pickedParagraphs.add(j + 1);
+					}
+				}
+
+				// Create the document
+				for (int k = 0; k < pickedParagraphs.size(); k++) {
+					finalDoc = finalDoc
+							+ Constants.LINE_SEP
+							+ starMatch.getParagraphsList().get(
+									pickedParagraphs.get(k));
+				}
+
+				// Set compatibility from from the JSON and store it in the
+				// manager
+				GameManager.getInstance().setCurrentCompatibility(
+						starMatch.getCurrentCompatibility());
+
+			}
 
 		}
 
-		return "";
+		return finalDoc;
 	}
 
 	public static String getNormalizedText(Font font, String ptext,
@@ -329,8 +305,15 @@ public final class Utils {
 		StringBuilder line = new StringBuilder();
 
 		for (int i = 0; i < words.length; i++) {
+
+			if (words[i].equals("\n\n")) {
+				normalizedText.append(line);
+				line = new StringBuilder();
+			}
+
 			if (FontUtils.measureText(font, (line + words[i])) > (textWidth)) {
-				normalizedText.append(line).append('\n');
+				Log.d("getNormalizedText", "line + words[i]" + line + words[i]);
+				normalizedText.append(line).append("\n");
 				line = new StringBuilder();
 			}
 
@@ -343,6 +326,25 @@ public final class Utils {
 				normalizedText.append(line);
 		}
 		return normalizedText.toString();
+	}
+
+	public static String loadJSONFromAsset(String fileName, Context ctx) {
+		String json = null;
+		try {
+
+			InputStream is = ctx.getAssets().open(fileName);
+			int size = is.available();
+			byte[] buffer = new byte[size];
+			is.read(buffer);
+			is.close();
+			json = new String(buffer, "UTF-8");
+
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			return null;
+		}
+		return json;
+
 	}
 
 }

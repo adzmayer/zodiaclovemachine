@@ -2,6 +2,7 @@ package com.writtenbyaliens.zodiaclovemachine;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import org.andengine.engine.Engine;
@@ -41,14 +42,19 @@ import org.andengine.input.touch.detector.ScrollDetector;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.LayoutGameActivity;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.view.KeyEvent;
 
 import com.writtenbyaliens.zodiaclovemachine.Entities.ScrollableEntity;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.Constants;
+import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.StarMatch;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.StarSign;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.fPoint;
 
@@ -60,7 +66,6 @@ public class MainActivity extends LayoutGameActivity implements
 	final int mCameraHeight = 800;
 	private Camera mCamera;
 	private Scene mScene;
-	private GameManager mGameManager;
 	private boolean mSpinning = false;
 	private fPoint mSelectedSignCoords;
 	private int mSelectedZodiacId;
@@ -68,7 +73,8 @@ public class MainActivity extends LayoutGameActivity implements
 	private TextToSpeech tts;
 	private boolean firstChoiceJustAdded = false;
 	private boolean bothChoicesMade = false;
-	private ArrayList<StarSign> starSigns;
+	private List<StarSign> starSigns;
+	private List<StarMatch> starMatches;
 	private int mSelected1;
 	private int mSelected2;
 
@@ -88,6 +94,7 @@ public class MainActivity extends LayoutGameActivity implements
 	private Sprite mSpriteSecondChoice;
 	private Sprite mSpriteHeart;
 	private Sprite mSpriteScroll;
+	private List<Sprite> mHeartList;
 	private BatchedSpriteParticleSystem mParticleSystemFirstChoice;
 	private BatchedSpriteParticleSystem mParticleSystemSecondChoice;
 	private BatchedSpriteParticleSystem mParticleSystemBackground;
@@ -109,6 +116,7 @@ public class MainActivity extends LayoutGameActivity implements
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
+
 		// Define our mCamera object
 		mCamera = new Camera(0, 0, mCameraWidth, mCameraHeight);
 
@@ -125,6 +133,9 @@ public class MainActivity extends LayoutGameActivity implements
 
 		// Set up tts
 		tts = new TextToSpeech(this, this);
+
+		// Get star sign data from assets
+		loadStarSignData();
 
 		// Return the engineOptions object, passing it to the engine
 		return engineOptions;
@@ -147,6 +158,8 @@ public class MainActivity extends LayoutGameActivity implements
 	@Override
 	public void onCreateScene(OnCreateSceneCallback pOnCreateSceneCallback)
 			throws IOException {
+
+		mScene = new Scene();
 
 		initVariables();
 		initLayers();
@@ -197,10 +210,12 @@ public class MainActivity extends LayoutGameActivity implements
 
 		manualScrolling = false;
 		creditsFinished = false;
+		bothChoicesMade = false;
+		firstChoiceJustAdded = false;
+		mSpinning = false;
 	}
 
 	private void initLayers() {
-		mScene = new Scene();
 
 		// Set background
 		mLayerBackground = new Entity();
@@ -231,6 +246,13 @@ public class MainActivity extends LayoutGameActivity implements
 		buildStarSigns();
 	}
 
+	private void reset() {
+		mScene.detachChildren();
+		initVariables();
+		initLayers();
+		initEntities();
+	}
+
 	// ----------------------------------------------------------
 	// Sprite methods
 	// ----------------------------------------------------------
@@ -241,6 +263,7 @@ public class MainActivity extends LayoutGameActivity implements
 		final float positionY = mCameraHeight * 0.5f;
 
 		// Add our zodiac ring sprite to the centre
+
 		mSpriteZodiac = new Sprite(positionX, positionY,
 				ResourceManager.getInstance().zodiacCircle,
 				mEngine.getVertexBufferObjectManager());
@@ -289,6 +312,15 @@ public class MainActivity extends LayoutGameActivity implements
 	// --------------------------------------------------------------------------
 	// Listeners
 	// --------------------------------------------------------------------------
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+			reset();
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
+	}
 
 	IOnSceneTouchListener onSceneTouchListener = new IOnSceneTouchListener() {
 
@@ -468,6 +500,10 @@ public class MainActivity extends LayoutGameActivity implements
 								/* Remove any particles from scene */
 								if (mParticleSystemFirstChoice != null) {
 									mLayer.detachChild(mParticleSystemFirstChoice);
+								}
+
+								if (mParticleSystemSecondChoice != null) {
+									mLayer.detachChild(mParticleSystemSecondChoice);
 								}
 
 							}
@@ -1043,7 +1079,6 @@ public class MainActivity extends LayoutGameActivity implements
 			int textType) {
 
 		textObject.setText(text);
-		// textObject.setAutoWrap(AutoWrap.WORDS);
 
 		textObject.setY(position.y);
 
@@ -1065,39 +1100,107 @@ public class MainActivity extends LayoutGameActivity implements
 
 	private void showScroll() {
 
+		// Show blue cloud background
 		addBackground();
 
-		Log.d("showScroll",
-				"text is:" + Utils.getLoveResult(mSelected1, mSelected2));
-
 		// Show scroll background
-		mSpriteScroll.registerEntityModifier(new ScaleModifier(3f, 0.1f, 1.3f,
+		mSpriteScroll.registerEntityModifier(new ScaleModifier(2f, 0.1f, 1.3f,
 				0.1f, 1.3f));
 
 		mLayerBackground.attachChild(mSpriteScroll);
 
-		// Show text
-		mTextResult = new Text(200, 400,
-				ResourceManager.getInstance().smallFont,
-				Utils.getNormalizedText(
-						ResourceManager.getInstance().smallFont,
-						Utils.getLoveResult(mSelected1, mSelected2), 280f),
-				mEngine.getVertexBufferObjectManager());
+		// Show text. Find the height of it an divide by 2 and add the header to
+		// find its y position
+		Entity text = new Entity();
+		addText(text);
 
-		mTextResult.registerEntityModifier(new AlphaModifier(10, 0f, 1f));
+		// Shoe the choices made
+		addChoices(text);
 
-		mTextResult.registerEntityModifier(new ScaleModifier(3f, 0.1f, 1f,
-				0.1f, 1f));
+		// Add the compatibility
+		addCompatibility(text);
 
-		Entity test = new Entity();
-		test.attachChild(mTextResult);
-
+		// Create the scrollable area
 		ScrollableEntity scrollableArea = new ScrollableEntity(
-				mCameraWidth * 0.5f, mCameraHeight * 0.5f, 368, 500, test);
+				mCameraWidth * 0.5f, mCameraHeight * 0.5f, 368, 500, text);
 
 		mLayerBackground.attachChild(scrollableArea);
 		mScene.registerTouchArea(scrollableArea);
 
+	}
+
+	/**
+	 * @param text
+	 * 
+	 *            Adds the compatibility text to the scroll
+	 */
+	private void addText(Entity text) {
+		mTextResult = new Text(180, 0, ResourceManager.getInstance().smallFont,
+				Utils.getNormalizedText(
+						ResourceManager.getInstance().smallFont,
+						Utils.getMatchResult(mSelected1, mSelected2), 310f),
+				mEngine.getVertexBufferObjectManager());
+
+		mTextResult.setY(700 - (mTextResult.getHeight() / 2));
+		mTextResult.registerEntityModifier(new AlphaModifier(10, 0f, 1f));
+		mTextResult.registerEntityModifier(new ScaleModifier(2f, 0.1f, 1f,
+				0.1f, 1f));
+
+		// Create the content for the scroll. This will be inserted into the
+		// scrollable area
+
+		text.attachChild(mTextResult);
+
+	}
+
+	/**
+	 * @param text
+	 * 
+	 *            Adds the correct hearts to the scroll
+	 * 
+	 */
+	private void addCompatibility(Entity text) {
+
+		Sprite heartSprite;
+
+		for (int x = 1; x < 6; x++) {
+			if (x > GameManager.getInstance().getCurrentCompatibility()) {
+				heartSprite = new Sprite((50 * x) + 30, 690,
+						ResourceManager.getInstance().heartEmpty,
+						mEngine.getVertexBufferObjectManager());
+			} else {
+				heartSprite = new Sprite((50 * x) + 30, 690,
+						ResourceManager.getInstance().heartFull,
+						mEngine.getVertexBufferObjectManager());
+			}
+
+			heartSprite.registerEntityModifier(new ScaleModifier(2f, 0.1f, 1f,
+					0.1f, 1f));
+			heartSprite.registerEntityModifier(new AlphaModifier(7, 0f, 1f));
+
+			text.attachChild(heartSprite);
+		}
+
+	}
+
+	private void addChoices(Entity text) {
+		// Show first choice
+		mSpriteFirstChoice.setX(100);
+		mSpriteFirstChoice.setY(800);
+		mSpriteFirstChoice.registerEntityModifier(new ScaleModifier(2f, 0.1f,
+				1f, 0.1f, 1f));
+		mSpriteFirstChoice
+				.registerEntityModifier(new AlphaModifier(10, 0f, 1f));
+		text.attachChild(mSpriteFirstChoice);
+
+		// Show second choice
+		mSpriteSecondChoice.setX(260);
+		mSpriteSecondChoice.setY(800);
+		mSpriteSecondChoice.registerEntityModifier(new ScaleModifier(2f, 0.1f,
+				1f, 0.1f, 1f));
+		mSpriteSecondChoice
+				.registerEntityModifier(new AlphaModifier(10, 0f, 1f));
+		text.attachChild(mSpriteSecondChoice);
 	}
 
 	// --------------------------------------------------------------------------
@@ -1108,6 +1211,81 @@ public class MainActivity extends LayoutGameActivity implements
 		tts.speak(words, TextToSpeech.QUEUE_FLUSH, null);
 	}
 
+	// --------------------------------------------------------------------------
+	// Data
+	// --------------------------------------------------------------------------
+
+	private void loadStarSignData() {
+
+		// Load get the signs data from the assets and stick it into a JSON
+		// object
+		JSONObject obj = null;
+		JSONArray jArry = null;
+		StarMatch starMatch;
+
+		try {
+			obj = new JSONObject(Utils.loadJSONFromAsset("text/star_signs",
+					this));
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
+		try {
+			jArry = obj.getJSONArray("signs");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
+		if (jArry != null) {
+
+			starMatches = new ArrayList<StarMatch>();
+
+			for (int i = 0; i < jArry.length(); i++) {
+
+				JSONObject jStarMatch;
+				JSONArray jParagraphs;
+
+				try {
+					jStarMatch = jArry.getJSONObject(i);
+					starMatch = new StarMatch();
+					starMatch.setStarSign1(jStarMatch
+							.getInt(Constants.JSONKeys.STAR_SIGN_1));
+					starMatch.setStarSign2(jStarMatch
+							.getInt(Constants.JSONKeys.STAR_SIGN_2));
+					starMatch.setCurrentCompatibility(jStarMatch
+							.getInt(Constants.JSONKeys.COMPATIBILITY));
+
+					// Get and populate paragraphs
+					jParagraphs = jStarMatch
+							.getJSONArray(Constants.JSONKeys.PARAGRAPHS);
+
+					if (jParagraphs != null) {
+
+						JSONObject jParagraph;
+						List<String> paragraphsList = new ArrayList<String>();
+
+						for (int j = 0; j < jParagraphs.length(); j++) {
+							jParagraph = jParagraphs.getJSONObject(j);
+							paragraphsList.add(jParagraph
+									.getString(Constants.JSONKeys.TEXT));
+						}
+
+						starMatch.setParagraphsList(paragraphsList);
+
+					}
+
+					starMatches.add(starMatch);
+
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+
+			}
+
+			GameManager.getInstance().setStarMatches(starMatches);
+		}
+
+	}
 	// --------------------------------------------------------------------------
 	// Handler
 	// --------------------------------------------------------------------------

@@ -1,0 +1,29 @@
+ {
+    "signs": [
+    {
+      "starsign1": "1",
+      "starsign2": "1",
+      "compatibility":"4",
+      "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
+      "paragraphs":[
+      	{"text":"As you're quite narcissistic, you're fascinated by their alter ego. They keep you entertained for a little while but you soon become worn out because they're quite complicated."},
+      	{"text":"If you decide to leave them, you'll miss them and will want just one thing: to get them back. A difficult relationship to deal with!"},
+      	{"text":"If you want to be let into a secret, it's that those twinkling Twins are forever fascinated by themselves. You can't resist the thought of matching up with someone else born under the same sign."},
+      	{"text":"Physically, this foursome (remember there are two of each Twin) behave like a supernova. At first, everything will be going full pelt, with scintillating explosions, cascading colours, sound, light and magic but it could just end up like a ball of expanding gas. You must make sure that you're not so alike that you bore each other to death."},
+      	{"text":"There will always be an element of spontaneity and a certain eccentricity between you. Fun-packed and exciting relationship is on the cards, but it may lack long-term potential."},
+      	{"text":"Intellectually stimulating and always buzzing. Either of you could be led astray by a beautiful face, great for an affair, but possibly unstable."}]
+    },
+    {
+      "starsign1": "1",
+      "starsign2": "2",
+      "compatibility":"4",
+      "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
+      "paragraphs":[
+      	{"text":"Your hearts and minds interlock, there’s lots to learn. Gemini is very flexible and adaptable and can learn a lot of things from a Cancer. Your relationship is extremely energising and stimulating."},
+      	{"text":"Moody is definitely the right word for you two. Geminis are ruled by Mercury, making them truly mercurial in their moods, one second they're sparkling, the next nearly in tears. Cancerians, being ruled by the magnificent Moon, are the moodiest of the lot. They're also desperately defensive, and quick to see a slight, even when it doesn't actually exist."},
+      	{"text":"To make your relationship to last, you've got to understand each other. The Twin must be more emotionally expressive to keep the Crab content, and the Cancerian mustn't be quite so clingy or sensitive when the Gemini does Geminian things."},
+      	{"text":"Gemini feels cherished by Cancer's genuine need to care.  However, Cancer is clingy, and Gemini wants space, and can get fed up with Cancer's moods and secrecy. Physically compelling for a while, but difficult to sustain. Especially by midnight when Cancer be scuttling off home, while Gemini would rather be out dancing."},
+      	{"text":"Crabs are kings and queens of making mountains out of mole-hills, and with  Gemini's way with words, this can create more misunderstandings than a squirrel at a meerkats-only convention."}]
+    }
+    ]
+  }
