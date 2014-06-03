@@ -194,7 +194,13 @@ public class MainActivity extends LayoutGameActivity implements
 
 				adView.setAdListener(new AdListener() {
 					public void onAdLoaded() {
-						addAdvert();
+						layout = (RelativeLayout) findViewById(R.id.root_view);
+						Log.d("advert",
+								"layout.getChildCount():"
+										+ layout.getChildCount());
+						if (layout.getChildCount() == 1) {
+							addAdvert();
+						}
 					}
 
 				});
@@ -222,11 +228,12 @@ public class MainActivity extends LayoutGameActivity implements
 		this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				layout = (RelativeLayout) findViewById(R.id.root_view);
+				// layout = (RelativeLayout) findViewById(R.id.root_view);
 				LayoutParams lParams = new LayoutParams(
 						LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
 				adView.setLayoutParams(lParams);
 				layout.addView(adView);
+				Log.d("advert", "added");
 			}
 		});
 	}
