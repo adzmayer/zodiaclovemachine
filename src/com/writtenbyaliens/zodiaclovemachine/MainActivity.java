@@ -51,7 +51,13 @@ import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 import com.writtenbyaliens.zodiaclovemachine.Entities.ScrollableEntity;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.Constants;
 import com.writtenbyaliens.zodiaclovemachine.UtilityClasses.StarMatch;
@@ -77,6 +83,10 @@ public class MainActivity extends LayoutGameActivity implements
 	private List<StarMatch> starMatches;
 	private int mSelected1;
 	private int mSelected2;
+
+	// Views
+	private AdView adView;
+	private RelativeLayout layout;
 
 	// Scroll variables
 	private static ScrollDetector mScrollDetector;
@@ -109,6 +119,7 @@ public class MainActivity extends LayoutGameActivity implements
 	private static final int SELECTED_SIGN_1_Y = 690;
 	private static final int SELECTED_SIGN_2_X = 400;
 	private static final int SELECTED_SIGN_2_Y = 690;
+	private static final String AD_UNIT_ID = "ca-app-pub-2152755479374802/8133900975";
 
 	// ----------------------------------------------------------
 	// Andengine lifecycle
@@ -168,9 +179,56 @@ public class MainActivity extends LayoutGameActivity implements
 		pOnCreateSceneCallback.onCreateSceneFinished(mScene);
 
 		// Set up advert here. Access this through runables - see old version in
-		// GIT
-		// txtView = (TextView) this.findViewById(R.id.ad_view);
 
+		// Create an ad.
+		adView = new AdView(this);
+		adView.setAdSize(AdSize.BANNER);
+		adView.setAdUnitId(AD_UNIT_ID);
+
+		// Add the AdView to the view hierarchy. The view will have no size
+		// until the ad is loaded.
+
+		this.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+
+				adView.setAdListener(new AdListener() {
+					public void onAdLoaded() {
+						addAdvert();
+					}
+
+				});
+
+			}
+		});
+
+		// Create an ad request. Check logcat output for the hashed
+		// device ID to
+		// get test ads on a physical device.
+		final AdRequest adRequest = new AdRequest.Builder().addTestDevice(
+				"525D136FC5897CDB2F35C54DC0E7659F").build();
+		// Start loading the ad in the background.
+		this.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				adView.loadAd(adRequest);
+			}
+		});
+
+	}
+
+	private void addAdvert() {
+
+		this.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				layout = (RelativeLayout) findViewById(R.id.root_view);
+				LayoutParams lParams = new LayoutParams(
+						LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+				adView.setLayoutParams(lParams);
+				layout.addView(adView);
+			}
+		});
 	}
 
 	@Override
