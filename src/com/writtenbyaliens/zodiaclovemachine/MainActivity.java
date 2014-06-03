@@ -53,6 +53,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -83,6 +84,8 @@ public class MainActivity extends LayoutGameActivity implements
 	private List<StarMatch> starMatches;
 	private int mSelected1;
 	private int mSelected2;
+	private boolean backAlreadyPressed = false;
+	private long secsSinceBackPressed = 0;
 
 	// Views
 	private AdView adView;
@@ -231,6 +234,7 @@ public class MainActivity extends LayoutGameActivity implements
 				// layout = (RelativeLayout) findViewById(R.id.root_view);
 				LayoutParams lParams = new LayoutParams(
 						LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+				lParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 				adView.setLayoutParams(lParams);
 				layout.addView(adView);
 				Log.d("advert", "added");
@@ -381,7 +385,26 @@ public class MainActivity extends LayoutGameActivity implements
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			reset();
+
+			if (backAlreadyPressed) {
+				// TODO Tidy up
+				secsSinceBackPressed = (System.currentTimeMillis())
+						- secsSinceBackPressed;
+				Log.d("onKeyDown", "secsSinceBackPressed:"
+						+ secsSinceBackPressed);
+				if (secsSinceBackPressed < 3000 && secsSinceBackPressed > 300) {
+					finish();
+				} else {
+					backAlreadyPressed = false;
+				}
+			} else {
+				secsSinceBackPressed = (System.currentTimeMillis());
+				// TODO Tidy toast
+				Toast.makeText(this, R.string.check_leave, Toast.LENGTH_SHORT)
+						.show();
+				backAlreadyPressed = true;
+				reset();
+			}
 			return true;
 		}
 		return super.onKeyDown(keyCode, event);

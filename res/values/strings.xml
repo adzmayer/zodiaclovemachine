@@ -16,5 +16,7 @@
     <string name="Pisces">Pisces</string>
     <string name="Aries">Aries</string>
     <string name="Taurus">Taurus</string>
+    
+    <string name="check_leave">Press back again to exit</string>
 
 </resources>
