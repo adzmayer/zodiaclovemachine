@@ -3,8 +3,8 @@
     {
       "starsign1": "1",
       "starsign2": "1",
-      "compatibility":"4",
-      "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
+      "compatibility":"1",
+
       "paragraphs":[
       	{"text":"As you're quite narcissistic, you're fascinated by their alter ego. They keep you entertained for a little while but you soon become worn out because they're quite complicated."},
       	{"text":"If you decide to leave them, you'll miss them and will want just one thing: to get them back. A difficult relationship to deal with!"},
@@ -16,7 +16,7 @@
     {
       "starsign1": "1",
       "starsign2": "2",
-      "compatibility":"4",
+      "compatibility":"2",
       "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
       "paragraphs":[
       	{"text":"Your hearts and minds interlock, there’s lots to learn. Gemini is very flexible and adaptable and can learn a lot of things from a Cancer. Your relationship is extremely energising and stimulating."},
@@ -24,6 +24,153 @@
       	{"text":"To make your relationship to last, you've got to understand each other. The Twin must be more emotionally expressive to keep the Crab content, and the Cancerian mustn't be quite so clingy or sensitive when the Gemini does Geminian things."},
       	{"text":"Gemini feels cherished by Cancer's genuine need to care.  However, Cancer is clingy, and Gemini wants space, and can get fed up with Cancer's moods and secrecy. Physically compelling for a while, but difficult to sustain. Especially by midnight when Cancer be scuttling off home, while Gemini would rather be out dancing."},
       	{"text":"Crabs are kings and queens of making mountains out of mole-hills, and with  Gemini's way with words, this can create more misunderstandings than a squirrel at a meerkats-only convention."}]
+    },
+    {
+      "starsign1": "1",
+      "starsign2": "3",
+      "compatibility":"3",
+      "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
+      "paragraphs":[
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"}]
+    },
+    {
+      "starsign1": "1",
+      "starsign2": "5",
+      "compatibility":"3",
+      "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
+      "paragraphs":[
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"}]
+    },
+    {
+      "starsign1": "1",
+      "starsign2": "6",
+      "compatibility":"3",
+      "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
+      "paragraphs":[
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"}]
+    },
+    {
+      "starsign1": "1",
+      "starsign2": "7",
+      "compatibility":"3",
+      "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
+      "paragraphs":[
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"}]
+    },
+    {
+      "starsign1": "1",
+      "starsign2": "8",
+      "compatibility":"3",
+      "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
+      "paragraphs":[
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"}]
+    },
+    {
+      "starsign1": "1",
+      "starsign2": "9",
+      "compatibility":"3",
+      "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
+      "paragraphs":[
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"}]
+    },
+    {
+      "starsign1": "1",
+      "starsign2": "10",
+      "compatibility":"3",
+      "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
+      "paragraphs":[
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"}]
+    },
+    {
+      "starsign1": "1",
+      "starsign2": "11",
+      "compatibility":"3",
+      "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
+      "paragraphs":[
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"}]
+    },
+    {
+      "starsign1": "1",
+      "starsign2": "12",
+      "compatibility":"3",
+      "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}],
+      "paragraphs":[
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"},
+        {"text":"Unfinished"},
+      	{"text":"Unfinished"}]
     }
+    ],
+    
+    "compatible":[
+	    {"starsign":"1",
+	     "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}]
+	    },
+	    {"starsign":"2",
+	     "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}]
+	    },
+	    {"starsign":"3",
+	     "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}]
+	    },
+	    {"starsign":"4",
+	     "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}]
+	    },
+	    {"starsign":"5",
+	     "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}]
+	    },
+	    {"starsign":"6",
+	     "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}]
+	    },
+	    {"starsign":"7",
+	     "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}]
+	    },
+	    {"starsign":"8",
+	     "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}]
+	    },
+	    {"starsign":"9",
+	     "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}]
+	    },
+	    {"starsign":"10",
+	     "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}]
+	    },
+	    {"starsign":"11",
+	     "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}]
+	    },
+	    {"starsign":"12",
+	     "compatiblesigns":[{"sign":"1"},{"sign":"1"},{"sign":"1"}]
+	    }
     ]
   }

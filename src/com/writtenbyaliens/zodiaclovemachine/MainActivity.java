@@ -1305,6 +1305,9 @@ public class MainActivity extends LayoutGameActivity implements
 
 	private void loadStarSignData() {
 
+		// TODO load star signs compatible signs into an object (which hasn't
+		// been written yet)
+
 		// Load get the signs data from the assets and stick it into a JSON
 		// object
 		JSONObject obj = null;

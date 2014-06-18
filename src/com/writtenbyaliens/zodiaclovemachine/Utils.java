@@ -231,6 +231,8 @@ public final class Utils {
 	public static String getMatchResult(int selectedZodiacId1,
 			int selectedZodiacId2) {
 
+		// TODO Create unique random text per day
+
 		int starSignMatched = 0;
 		List<Integer> pickedParagraphs;
 		String finalDoc = "";
